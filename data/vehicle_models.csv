@@ -1,0 +1,21 @@
+id;manufacturer;model;vehicleCategory
+1;Toyota;Yaris;ECONOMY
+2;Renault;Clio;ECONOMY
+3;Fiat;Panda;ECONOMY
+4;Volkswagen;Polo;ECONOMY
+5;Skoda;Fabia;ECONOMY
+6;Volkswagen;Golf 7;STANDARD
+7;Toyota;Corolla;STANDARD
+8;Skoda;Octavia;STANDARD
+9;Hyundai;i30;STANDARD
+10;Kia;Ceed;STANDARD
+11;Volkswagen;Passat;FAMILY
+12;Skoda;Kodiaq;FAMILY
+13;Toyota;RAV4;FAMILY
+14;Ford;S-Max;FAMILY
+15;Dacia;Jogger;FAMILY
+16;Mercedes-Benz;C-Class;LUXURY
+17;BMW;Series 5;LUXURY
+18;Audi;A6;LUXURY
+19;Volvo;XC60;LUXURY
+20;Mercedes-Benz;E-Class;LUXURY

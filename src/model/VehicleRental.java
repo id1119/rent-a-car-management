@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public class VehicleRental {
+    private int id;
     private LocalDate startRentDate;
     private LocalDate endRentDate;
     private LocalDate actualEndRentDate;
@@ -12,9 +13,10 @@ public class VehicleRental {
     private Vehicle vehicle;
     private Reservation reservation;
 
-    public VehicleRental(LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate,
+    public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate,
                          int startMileage, int endMileage, double penaltyForBeingLate,
                          Vehicle vehicle, Reservation reservation) {
+        this.id = id;
         this.startRentDate = startRentDate;
         this.endRentDate = endRentDate;
         this.actualEndRentDate = actualEndRentDate;
@@ -25,7 +27,8 @@ public class VehicleRental {
         this.reservation = reservation;
     }
 
-    public VehicleRental(LocalDate startRentDate, LocalDate endRentDate, int startMileage, Vehicle vehicle, Reservation reservation) {
+    public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, int startMileage, Vehicle vehicle, Reservation reservation) {
+        this.id = id;
         this.startRentDate = startRentDate;
         this.endRentDate = endRentDate;
         this.startMileage = startMileage;
@@ -33,8 +36,16 @@ public class VehicleRental {
         this.reservation = reservation;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public LocalDate getStartRentDate() {
         return startRentDate;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setStartRentDate(LocalDate startRentDate) {

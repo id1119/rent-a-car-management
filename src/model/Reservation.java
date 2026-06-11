@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Reservation {
+    private int id;
     private ReservationStatus reservationStatus;
     private Client client;
     private VehicleModel vehicleModel;
@@ -17,7 +18,8 @@ public class Reservation {
     private LocalDateTime cancellationTime;
 
 
-    public Reservation(Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
+    public Reservation(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
+        this.id = id;
         this.reservationStatus = ReservationStatus.PENDING;
         this.client = client;
         this.vehicleModel = vehicleModel;
@@ -29,8 +31,16 @@ public class Reservation {
         }
     }
 
+    public int getId() {
+        return id;
+    }
+
     public ReservationStatus getReservationStatus() {
         return reservationStatus;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setReservationStatus(ReservationStatus reservationStatus) {

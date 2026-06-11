@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public abstract class User {
+    private int id;
     private String name;
     private String lastName;
     private String gender;
@@ -12,7 +13,8 @@ public abstract class User {
     private String userName;
     private String password;
 
-    public User(String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password) {
+    public User(int id, String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password) {
+        this.id = id;
         this.name = name;
         this.lastName = lastName;
         this.gender = gender;
@@ -24,6 +26,10 @@ public abstract class User {
     }
 
     protected User() {
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -56,6 +62,10 @@ public abstract class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setName(String name) {
@@ -93,7 +103,8 @@ public abstract class User {
     @Override
     public String toString() {
         return "User{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", gender='" + gender + '\'' +
                 ", birthday=" + birthday +

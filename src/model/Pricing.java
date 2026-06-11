@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Pricing {
+    private int id;
     private LocalDate startDate;
     private LocalDate endDate;
     private double annualSubscription;
@@ -13,7 +14,8 @@ public class Pricing {
     private Map<ExtraService, Double> extraServicesPrices = new HashMap<>();
     private Map<ClientCategory, Double> clientCategoryDiscounts = new HashMap<>();
 
-    public Pricing(LocalDate startDate, LocalDate endDate, double annualSubscription, double penaltyPerDay, Map<VehicleCategory, Double> categoryPrices, Map<ExtraService, Double> extraServicesPrices, Map<ClientCategory, Double> clientCategoryDiscounts) {
+    public Pricing(int id, LocalDate startDate, LocalDate endDate, double annualSubscription, double penaltyPerDay, Map<VehicleCategory, Double> categoryPrices, Map<ExtraService, Double> extraServicesPrices, Map<ClientCategory, Double> clientCategoryDiscounts) {
+        this.id = id;
         this.startDate = startDate;
         this.endDate = endDate;
         this.annualSubscription = annualSubscription;
@@ -29,8 +31,16 @@ public class Pricing {
         }
     }
 
+    public int getId() {
+        return id;
+    }
+
     public LocalDate getStartDate() {
         return startDate;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setStartDate(LocalDate startDate) {

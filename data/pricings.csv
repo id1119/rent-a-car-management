@@ -1,0 +1,5 @@
+id;startDate;endDate;annualSubscription;penaltyPerDay;economyDailyPrice;standardDailyPrice;familyDailyPrice;luxuryDailyPrice;gpsPrice;childSeatPrice;additionalInsurancePrice;extendedUsePricePerDay;studentDiscount;pensionerDiscount;companyDiscount
+1;2025-01-01;2025-12-31;12000;2500;2800;4200;5800;11000;600;800;1500;2200;0.10;0.12;0.08
+2;2026-01-01;2026-06-30;13500;3000;3200;4700;6500;12500;700;900;1700;2500;0.10;0.15;0.08
+3;2026-07-01;2026-12-31;14500;3500;3500;5100;7000;13500;800;1000;1900;2800;0.12;0.15;0.10
+4;2027-01-01;2027-12-31;16000;4000;3900;5600;7600;15000;900;1100;2100;3200;0.12;0.18;0.10

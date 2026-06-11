@@ -8,15 +8,15 @@ public class Client extends User {
     private Subscription subscription;
     private int lateReturnsCount = 0;
 
-    public Client(String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LocalDate driversLicenseIssueDate, ClientCategory clientCategory, Subscription subscription) {
-        super(name, lastName, gender, birthday, phoneNumber, address, userName, password);
+    public Client(int id, String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LocalDate driversLicenseIssueDate, ClientCategory clientCategory, Subscription subscription) {
+        super(id, name, lastName, gender, birthday, phoneNumber, address, userName, password);
         this.driversLicenseIssueDate = driversLicenseIssueDate;
         this.clientCategory = clientCategory;
         this.subscription = subscription;
     }
 
-    public Client(String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LocalDate driversLicenseIssueDate, Subscription subscription) {
-        super(name, lastName, gender, birthday, phoneNumber, address, userName, password);
+    public Client(int id, String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LocalDate driversLicenseIssueDate, Subscription subscription) {
+        super(id, name, lastName, gender, birthday, phoneNumber, address, userName, password);
         this.driversLicenseIssueDate = driversLicenseIssueDate;
         this.subscription = subscription;
     }

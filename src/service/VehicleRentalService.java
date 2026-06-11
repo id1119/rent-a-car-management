@@ -53,7 +53,7 @@ public class VehicleRentalService {
         vehicle.setMileage(startMileage);
         vehicle.setVehicleStatus(VehicleStatus.RENTED);
         LocalDate endRentDate = reservation.getEndDate();
-        VehicleRental rentedVehicle = new VehicleRental(LocalDate.now(), endRentDate, startMileage, vehicle, reservation);
+        VehicleRental rentedVehicle = new VehicleRental(0, LocalDate.now(), endRentDate, startMileage, vehicle, reservation);
         addRental(rentedVehicle);
         return rentedVehicle;
     }

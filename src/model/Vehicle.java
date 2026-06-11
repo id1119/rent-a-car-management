@@ -1,20 +1,30 @@
 package model;
 
 public class Vehicle {
+    private int id;
     private String registration;
     private VehicleStatus vehicleStatus;
     private int mileage;
     private VehicleModel vehicleModel;
 
-    public Vehicle(String registration, VehicleStatus vehicleStatus, int mileage, VehicleModel vehicleModel) {
+    public Vehicle(int id, String registration, VehicleStatus vehicleStatus, int mileage, VehicleModel vehicleModel) {
+        this.id = id;
         this.registration = registration;
         this.vehicleStatus = vehicleStatus;
         this.mileage = mileage;
         this.vehicleModel = vehicleModel;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public VehicleModel getVehicleModel() {
         return vehicleModel;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setVehicleModel(VehicleModel vehicleModel) {

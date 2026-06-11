@@ -9,8 +9,8 @@ public abstract class Employee extends User {
     private LevelOfEducation levelOfEducation;
     private int yearsOfExperience;
 
-    public Employee(String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LevelOfEducation levelOfEducation, int yearsOfExperience) {
-        super(name, lastName, gender, birthday, phoneNumber, address, userName, password);
+    public Employee(int id, String name, String lastName, String gender, LocalDate birthday, String phoneNumber, String address, String userName, String password, LevelOfEducation levelOfEducation, int yearsOfExperience) {
+        super(id, name, lastName, gender, birthday, phoneNumber, address, userName, password);
         this.levelOfEducation = levelOfEducation;
         this.yearsOfExperience = yearsOfExperience;
     }
