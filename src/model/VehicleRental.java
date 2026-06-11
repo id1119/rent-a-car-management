@@ -25,6 +25,14 @@ public class VehicleRental {
         this.reservation = reservation;
     }
 
+    public VehicleRental(LocalDate startRentDate, LocalDate endRentDate, int startMileage, Vehicle vehicle, Reservation reservation) {
+        this.startRentDate = startRentDate;
+        this.endRentDate = endRentDate;
+        this.startMileage = startMileage;
+        this.vehicle = vehicle;
+        this.reservation = reservation;
+    }
+
     public LocalDate getStartRentDate() {
         return startRentDate;
     }

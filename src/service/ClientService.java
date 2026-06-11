@@ -24,4 +24,19 @@ public class ClientService {
     public void removeClient(Client client) {
         clients.remove(client);
     }
+
+    public Client findClientByUsername(String username){
+        if(username == null){
+            return null;
+        }
+        for (Client client: clients){
+            if (username.equals(client.getUserName())){
+                return client;
+            }
+        }
+        return null;
+    }
+    public boolean usernameExists(String username){
+        return findClientByUsername(username) != null;
+    }
 }
