@@ -18,13 +18,13 @@ public class Pricing {
         this.endDate = endDate;
         this.annualSubscription = annualSubscription;
         this.penaltyPerDay = penaltyPerDay;
-        if(categoryPrices != null) {
+        if (categoryPrices != null) {
             this.categoryPrices = categoryPrices;
         }
-        if(extraServicesPrices!= null) {
+        if (extraServicesPrices != null) {
             this.extraServicesPrices = extraServicesPrices;
         }
-        if(clientCategoryDiscounts!= null) {
+        if (clientCategoryDiscounts != null) {
             this.clientCategoryDiscounts = clientCategoryDiscounts;
         }
     }
@@ -85,11 +85,11 @@ public class Pricing {
         this.clientCategoryDiscounts = clientCategoryDiscounts;
     }
 
-    public boolean isValidOn(LocalDate date){
+    public boolean isValidOn(LocalDate date) {
         return !date.isBefore(startDate) && !date.isAfter(endDate);
     }
 
-    public boolean isValidNow(){
+    public boolean isValidNow() {
         return isValidOn(LocalDate.now());
     }
 

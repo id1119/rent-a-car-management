@@ -24,7 +24,7 @@ public class Reservation {
         this.startDate = startDate;
         this.endDate = endDate;
         this.price = price;
-        if (extraServices != null){
+        if (extraServices != null) {
             this.extraServices = extraServices;
         }
     }
@@ -90,22 +90,22 @@ public class Reservation {
     }
 
     public void setExtraServices(List<ExtraService> extraServices) {
-        if (extraServices == null){
+        if (extraServices == null) {
             extraServices = new ArrayList<>();
         }
         this.extraServices = extraServices;
     }
 
-    public boolean addExtraService(ExtraService extraService){
-        if (extraServices == null){
+    public boolean addExtraService(ExtraService extraService) {
+        if (extraServices == null) {
             extraServices = new ArrayList<>();
         }
-        if (extraService==null){
+        if (extraService == null) {
             return false;
         }
-        if (extraServices.contains(extraService)){
+        if (extraServices.contains(extraService)) {
             return false;
-        }else{
+        } else {
             extraServices.add(extraService);
             return true;
         }

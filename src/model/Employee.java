@@ -15,8 +15,8 @@ public abstract class Employee extends User {
         this.yearsOfExperience = yearsOfExperience;
     }
 
-    public double getSalary(){
-        return baseSalary*(levelOfEducation.getCoefficient()+0.004*this.yearsOfExperience);
+    public double getSalary() {
+        return baseSalary * (levelOfEducation.getCoefficient() + 0.004 * this.yearsOfExperience);
     }
 
     public LevelOfEducation getLevelOfEducation() {

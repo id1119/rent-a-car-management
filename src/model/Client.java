@@ -2,7 +2,7 @@ package model;
 
 import java.time.LocalDate;
 
-public class Client extends User{
+public class Client extends User {
     private LocalDate driversLicenseIssueDate;
     private ClientCategory clientCategory;
     private Subscription subscription;
@@ -39,8 +39,8 @@ public class Client extends User{
         this.clientCategory = clientCategory;
     }
 
-    public boolean canRent(){
-        if (this.driversLicenseIssueDate == null){
+    public boolean canRent() {
+        if (this.driversLicenseIssueDate == null) {
             return false;
         }
         LocalDate twoYearsAgo = LocalDate.now().minusYears(2);

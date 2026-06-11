@@ -45,7 +45,7 @@ public class Vehicle {
         this.mileage = mileage;
     }
 
-    public boolean isAvailable(){
+    public boolean isAvailable() {
         return this.vehicleStatus == VehicleStatus.AVAILABLE;
 
     }

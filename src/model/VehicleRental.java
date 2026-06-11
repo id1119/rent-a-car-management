@@ -12,8 +12,8 @@ public class VehicleRental {
     private Vehicle vehicle;
     private Reservation reservation;
 
-    public VehicleRental(LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate, 
-                         int startMileage, int endMileage, double penaltyForBeingLate, 
+    public VehicleRental(LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate,
+                         int startMileage, int endMileage, double penaltyForBeingLate,
                          Vehicle vehicle, Reservation reservation) {
         this.startRentDate = startRentDate;
         this.endRentDate = endRentDate;
@@ -89,7 +89,7 @@ public class VehicleRental {
         this.reservation = reservation;
     }
 
-    public boolean isLate(){
+    public boolean isLate() {
         if (actualEndRentDate != null) {
             return actualEndRentDate.isAfter(endRentDate);
         }

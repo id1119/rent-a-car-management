@@ -7,7 +7,7 @@ public enum LevelOfEducation {
 
     private final double coefficient;
 
-    LevelOfEducation(double coefficient){
+    LevelOfEducation(double coefficient) {
         this.coefficient = coefficient;
     }
 

@@ -27,7 +27,7 @@ public class Subscription {
         this.expirationDate = expirationDate;
     }
 
-    public boolean isActive(){
+    public boolean isActive() {
         return subscriptionStatus == SubscriptionStatus.ACTIVE && !expirationDate.isBefore(LocalDate.now());
     }
 }
