@@ -16,6 +16,7 @@ public class Reservation {
     private Vehicle assignedVehicle = null;
     private List<ExtraService> extraServices = new ArrayList<ExtraService>();
     private LocalDateTime cancellationTime;
+    private LocalDateTime createdAt;
 
 
     public Reservation(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
@@ -26,6 +27,7 @@ public class Reservation {
         this.startDate = startDate;
         this.endDate = endDate;
         this.price = price;
+        this.createdAt = LocalDateTime.now();
         if (extraServices != null) {
             this.extraServices = extraServices;
         }
@@ -127,5 +129,13 @@ public class Reservation {
 
     public void setCancellationTime(LocalDateTime cancellationTime) {
         this.cancellationTime = cancellationTime;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

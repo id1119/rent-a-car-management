@@ -43,6 +43,7 @@ public class ReservationRepository {
                 Integer assignedVehicleId = parseOptionalInteger(parts[7]);
                 List<ExtraService> extraServices = parseExtraServices(parts[8]);
                 LocalDateTime cancellationTime = parseOptionalDateTime(parts[9]);
+                LocalDateTime createdAt = parseOptionalDateTime(parts[10]);
 
                 Client client = findClientById(clients, clientId);
                 VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
@@ -59,6 +60,7 @@ public class ReservationRepository {
                 reservation.setReservationStatus(reservationStatus);
                 reservation.setAssignedVehicle(assignedVehicle);
                 reservation.setCancellationTime(cancellationTime);
+                reservation.setCreatedAt(createdAt);
 
                 reservations.add(reservation);
             }
@@ -89,6 +91,11 @@ public class ReservationRepository {
                     cancellationTime = reservation.getCancellationTime().toString();
                 }
 
+                String createdAt = "";
+                if (reservation.getCreatedAt() != null) {
+                    createdAt = reservation.getCreatedAt().toString();
+                }
+
                 String line = String.join(";",
                         String.valueOf(reservation.getId()),
                         reservation.getReservationStatus().name(),
@@ -100,7 +107,7 @@ public class ReservationRepository {
                         assignedVehicleId,
                         formatExtraServices(reservation.getExtraServices()),
                         cancellationTime,
-                        ""
+                        createdAt
                 );
 
                 writer.write(line);
