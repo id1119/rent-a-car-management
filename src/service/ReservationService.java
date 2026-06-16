@@ -8,6 +8,7 @@ import model.Vehicle;
 import model.VehicleModel;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,27 +39,39 @@ public class ReservationService {
     }
 
     public boolean canCreateReservation(Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate) {
+        return getReservationCreationError(client, vehicleModel, startDate, endDate) == null;
+    }
+
+    public String getReservationCreationError(Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate) {
         if (client == null || vehicleModel == null || startDate == null || endDate == null) {
-            return false;
+            return "Client, vehicle model and dates are required.";
         }
 
         if (endDate.isBefore(startDate)) {
-            return false;
+            return "End date cannot be before start date.";
         }
 
         if (startDate.isBefore(LocalDate.now().plusDays(1))) {
-            return false;
+            return "Reservation must start at least tomorrow.";
         }
 
         if (!client.canRent()) {
-            return false;
+            return "Client must have a driver license for at least 2 years.";
+        }
+
+        if (!client.canMakeReservationNow()) {
+            return "Client is temporarily blocked from creating reservations.";
         }
 
         if (client.getSubscription() == null || !client.getSubscription().isActive()) {
-            return false;
+            return "Client must have an active subscription.";
         }
 
-        return hasAvailableVehicle(vehicleModel, startDate, endDate);
+        if (!hasAvailableVehicle(vehicleModel, startDate, endDate)) {
+            return "No vehicle is available for selected model and period.";
+        }
+
+        return null;
     }
 
     public boolean hasAvailableVehicle(VehicleModel vehicleModel) {
@@ -176,6 +189,89 @@ public class ReservationService {
 
         reservation.setReservationStatus(ReservationStatus.REJECTED);
         return true;
+    }
+
+    public void rejectExpiredPendingReservations() {
+        for (Reservation reservation : reservations) {
+            if (reservation.getReservationStatus() == ReservationStatus.PENDING &&
+                    !reservation.getStartDate().isAfter(LocalDate.now())) {
+                reservation.setReservationStatus(ReservationStatus.REJECTED);
+            }
+        }
+    }
+
+    public boolean cancelReservationByClient(Reservation reservation) {
+        String error = getReservationCancellationError(reservation);
+        if (error != null) {
+            return false;
+        }
+
+        LocalDateTime cancellationTime = LocalDateTime.now();
+        reservation.setReservationStatus(ReservationStatus.CANCELED);
+        reservation.setCancellationTime(cancellationTime);
+        reservation.getClient().setReservationBlockedUntil(cancellationTime.plusHours(24));
+        return true;
+    }
+
+    public boolean cancelReservationByStaff(Reservation reservation) {
+        String error = getReservationCancellationError(reservation);
+        if (error != null) {
+            return false;
+        }
+
+        reservation.setReservationStatus(ReservationStatus.CANCELED);
+        reservation.setCancellationTime(LocalDateTime.now());
+        return true;
+    }
+
+    public boolean markNoShow(Reservation reservation) {
+        String error = getNoShowError(reservation);
+        if (error != null) {
+            return false;
+        }
+
+        LocalDateTime cancellationTime = LocalDateTime.now();
+        reservation.setReservationStatus(ReservationStatus.CANCELED);
+        reservation.setCancellationTime(cancellationTime);
+        reservation.getClient().setReservationBlockedUntil(cancellationTime.plusHours(24));
+        return true;
+    }
+
+    public String getReservationCancellationError(Reservation reservation) {
+        if (reservation == null || reservation.getClient() == null) {
+            return "Reservation is not valid.";
+        }
+
+        if (reservation.getReservationStatus() != ReservationStatus.PENDING &&
+                reservation.getReservationStatus() != ReservationStatus.APPROVED) {
+            return "Only pending or approved reservations can be canceled.";
+        }
+
+        if (reservation.getAssignedVehicle() != null) {
+            return "Reservation cannot be canceled because the vehicle has already been issued.";
+        }
+
+        return null;
+    }
+
+    public String getNoShowError(Reservation reservation) {
+        if (reservation == null || reservation.getClient() == null) {
+            return "Reservation is not valid.";
+        }
+
+        if (reservation.getReservationStatus() != ReservationStatus.APPROVED) {
+            return "Only approved reservations can be marked as no-show.";
+        }
+
+        if (reservation.getAssignedVehicle() != null) {
+            return "Reservation cannot be marked as no-show because the vehicle has already been issued.";
+        }
+
+        if (reservation.getStartDate() != null && reservation.getStartDate().isAfter(LocalDate.now())) {
+            return "Reservation cannot be marked as no-show before its start date.";
+        }
+
+        return null;
     }
 
 }

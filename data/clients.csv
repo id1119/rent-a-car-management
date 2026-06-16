@@ -1,9 +1,9 @@
-id;name;lastName;gender;birthday;phoneNumber;address;userName;password;driversLicenseIssueDate;clientCategory;subscriptionId;subscriptionStatus;subscriptionExpirationDate;lateReturnsCount
-1;Marko;Markovic;M;1998-04-12;+38164111222;Bulevar Oslobodjenja 12 Novi Sad;marko.markovic@example.com;marko123;2018-05-20;STUDENT;1;ACTIVE;2027-06-01;0
-2;Jelena;Jovanovic;F;1994-09-03;+38164222333;Kralja Petra 8 Beograd;jelena.jovanovic@example.com;jelena123;2016-10-14;;2;ACTIVE;2027-01-15;1
-3;Nikola;Petrovic;M;1987-02-21;+38164333444;Cara Dusana 45 Nis;nikola.petrovic@example.com;nikola123;2010-03-02;COMPANY;3;ACTIVE;2026-12-31;2
-4;Ana;Ilic;F;2001-11-30;+38164444555;Zmaj Jovina 5 Subotica;ana.ilic@example.com;ana123;2021-06-11;STUDENT;4;ACTIVE;2026-09-10;0
-5;Milan;Stankovic;M;1962-07-18;+38164555666;Knez Mihailova 22 Beograd;milan.stankovic@example.com;milan123;1990-04-25;PENSIONER;5;ACTIVE;2026-11-20;3
-6;Ivana;Nikolic;F;1999-12-05;+38164666777;Laze Teleckog 3 Novi Sad;ivana.nikolic@example.com;ivana123;2025-01-10;;6;ACTIVE;2027-03-05;0
-7;Petar;Savic;M;1980-03-27;+38164777888;Bulevar Evrope 101 Novi Sad;petar.savic@example.com;petar123;2005-08-19;COMPANY;7;EXPIRED;2025-12-31;4
-8;Milica;Kovacevic;F;1975-06-09;+38164888999;Vojvode Stepe 77 Beograd;milica.kovacevic@example.com;milica123;2001-09-09;;8;PENDING_APPROVAL;2026-06-20;6
+id;name;lastName;gender;birthday;phoneNumber;address;userName;password;driversLicenseIssueDate;clientCategory;subscriptionId;subscriptionStatus;subscriptionExpirationDate;lateReturnsCount;reservationBlockedUntil
+1;Marko;Markovic;M;1998-04-12;+38164111222;Bulevar Oslobodjenja 12 Novi Sad;client;client;2018-05-20;STUDENT;1;ACTIVE;2027-06-01;0;
+2;Jelena;Jovanovic;F;1994-09-03;+38164222333;Kralja Petra 8 Beograd;jelena.jovanovic@example.com;jelena123;2016-10-14;;2;ACTIVE;2027-01-15;1;
+3;Nikola;Petrovic;M;1987-02-21;+38164333444;Cara Dusana 45 Nis;nikola.petrovic@example.com;nikola123;2010-03-02;COMPANY;3;ACTIVE;2026-12-31;2;
+4;Ana;Ilic;F;2001-11-30;+38164444555;Zmaj Jovina 5 Subotica;ana.ilic@example.com;ana123;2021-06-11;STUDENT;4;ACTIVE;2026-09-10;0;
+5;Milan;Stankovic;M;1962-07-18;+38164555666;Knez Mihailova 22 Beograd;milan.stankovic@example.com;milan123;1990-04-25;PENSIONER;5;ACTIVE;2026-11-20;3;
+6;Ivana;Nikolic;F;1999-12-05;+38164666777;Laze Teleckog 3 Novi Sad;ivana.nikolic@example.com;ivana123;2025-01-10;;6;ACTIVE;2027-03-05;0;
+7;Petar;Savic;M;1980-03-27;+38164777888;Bulevar Evrope 101 Novi Sad;petar.savic@example.com;petar123;2005-08-19;COMPANY;7;EXPIRED;2025-12-31;4;
+8;Milica;Kovacevic;F;1975-06-09;+38164888999;Vojvode Stepe 77 Beograd;milica.kovacevic@example.com;milica123;2001-09-09;;8;PENDING_APPROVAL;2026-06-20;6;

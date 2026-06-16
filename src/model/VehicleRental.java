@@ -12,10 +12,17 @@ public class VehicleRental {
     private double penaltyForBeingLate;
     private Vehicle vehicle;
     private Reservation reservation;
+    private Agent agent;
 
     public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate,
                          int startMileage, int endMileage, double penaltyForBeingLate,
                          Vehicle vehicle, Reservation reservation) {
+        this(id, startRentDate, endRentDate, actualEndRentDate, startMileage, endMileage, penaltyForBeingLate, vehicle, reservation, null);
+    }
+
+    public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, LocalDate actualEndRentDate,
+                         int startMileage, int endMileage, double penaltyForBeingLate,
+                         Vehicle vehicle, Reservation reservation, Agent agent) {
         this.id = id;
         this.startRentDate = startRentDate;
         this.endRentDate = endRentDate;
@@ -25,15 +32,21 @@ public class VehicleRental {
         this.penaltyForBeingLate = penaltyForBeingLate;
         this.vehicle = vehicle;
         this.reservation = reservation;
+        this.agent = agent;
     }
 
     public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, int startMileage, Vehicle vehicle, Reservation reservation) {
+        this(id, startRentDate, endRentDate, startMileage, vehicle, reservation, null);
+    }
+
+    public VehicleRental(int id, LocalDate startRentDate, LocalDate endRentDate, int startMileage, Vehicle vehicle, Reservation reservation, Agent agent) {
         this.id = id;
         this.startRentDate = startRentDate;
         this.endRentDate = endRentDate;
         this.startMileage = startMileage;
         this.vehicle = vehicle;
         this.reservation = reservation;
+        this.agent = agent;
     }
 
     public int getId() {
@@ -106,6 +119,14 @@ public class VehicleRental {
 
     public void setReservation(Reservation reservation) {
         this.reservation = reservation;
+    }
+
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 
     public boolean isLate() {

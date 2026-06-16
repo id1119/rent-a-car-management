@@ -25,33 +25,37 @@ public class AdministratorRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                String lastName = parts[2];
-                String gender = parts[3];
-                LocalDate birthday = LocalDate.parse(parts[4]);
-                String phoneNumber = parts[5];
-                String address = parts[6];
-                String userName = parts[7];
-                String password = parts[8];
-                LevelOfEducation levelOfEducation = LevelOfEducation.valueOf(parts[9]);
-                int yearsOfExperience = Integer.parseInt(parts[10]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String name = parts[1];
+                    String lastName = parts[2];
+                    String gender = parts[3];
+                    LocalDate birthday = LocalDate.parse(parts[4]);
+                    String phoneNumber = parts[5];
+                    String address = parts[6];
+                    String userName = parts[7];
+                    String password = parts[8];
+                    LevelOfEducation levelOfEducation = LevelOfEducation.valueOf(parts[9]);
+                    int yearsOfExperience = Integer.parseInt(parts[10]);
 
-                Administrator administrator = new Administrator(
-                        id,
-                        name,
-                        lastName,
-                        gender,
-                        birthday,
-                        phoneNumber,
-                        address,
-                        userName,
-                        password,
-                        levelOfEducation,
-                        yearsOfExperience
-                );
+                    Administrator administrator = new Administrator(
+                            id,
+                            name,
+                            lastName,
+                            gender,
+                            birthday,
+                            phoneNumber,
+                            address,
+                            userName,
+                            password,
+                            levelOfEducation,
+                            yearsOfExperience
+                    );
 
-                administrators.add(administrator);
+                    administrators.add(administrator);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid administrator row: " + line);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

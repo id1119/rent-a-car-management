@@ -14,12 +14,14 @@ import repository.AgentRepository;
 import repository.ClientRepository;
 import repository.PricingRepository;
 import repository.ReservationRepository;
+import repository.SettingsRepository;
 import repository.VehicleModelRepository;
 import repository.VehicleRentalRepository;
 import repository.VehicleRepository;
 import service.AuthService;
 import service.ClientService;
 import service.PricingService;
+import service.ReportService;
 import service.ReservationService;
 import service.SubscriptionService;
 import service.VehicleRentalService;
@@ -36,6 +38,7 @@ public class App {
     private AdministratorRepository administratorRepository = new AdministratorRepository();
     private ReservationRepository reservationRepository = new ReservationRepository();
     private VehicleRentalRepository vehicleRentalRepository = new VehicleRentalRepository();
+    private SettingsRepository settingsRepository = new SettingsRepository();
 
     private List<Client> clients;
     private List<Agent> agents;
@@ -53,8 +56,11 @@ public class App {
     private ReservationService reservationService;
     private VehicleRentalService vehicleRentalService;
     private SubscriptionService subscriptionService;
+    private ReportService reportService;
+    private int defaultRentalDurationDays = 3;
 
     public void loadAll() {
+        defaultRentalDurationDays = settingsRepository.loadDefaultRentalDurationDays();
         vehicleModels = vehicleModelRepository.loadAll();
         vehicles = vehicleRepository.loadAll(vehicleModels);
         clients = clientRepository.loadAll();
@@ -62,7 +68,7 @@ public class App {
         agents = agentRepository.loadAll();
         administrators = administratorRepository.loadAll();
         reservations = reservationRepository.loadAll(clients, vehicleModels, vehicles);
-        vehicleRentals = vehicleRentalRepository.loadAll(vehicles, reservations);
+        vehicleRentals = vehicleRentalRepository.loadAll(vehicles, reservations, agents);
 
         clientService = new ClientService();
         clientService.getClients().addAll(clients);
@@ -72,9 +78,11 @@ public class App {
 
         pricingService = new PricingService();
         pricingService.getPricings().addAll(pricings);
+        pricingService.setDefaultRentalDurationDays(defaultRentalDurationDays);
 
         reservationService = new ReservationService(vehicleService);
         reservationService.getReservations().addAll(reservations);
+        reservationService.rejectExpiredPendingReservations();
 
         vehicleRentalService = new VehicleRentalService();
         vehicleRentalService.getVehicleRentals().addAll(vehicleRentals);
@@ -88,6 +96,7 @@ public class App {
         }
 
         authService = new AuthService(clientService, agents, administrators);
+        reportService = new ReportService(clientService.getClients(), agents, administrators, vehicleModels, reservationService, vehicleRentalService, pricingService);
     }
 
     public void saveAll() {
@@ -99,6 +108,7 @@ public class App {
         vehicleRentalRepository.saveAll(vehicleRentalService.getVehicleRentals());
         agentRepository.saveAll(agents);
         administratorRepository.saveAll(administrators);
+        settingsRepository.saveDefaultRentalDurationDays(defaultRentalDurationDays);
     }
 
     public int getNextClientId() {
@@ -106,6 +116,16 @@ public class App {
         for (Client client : clientService.getClients()) {
             if (client.getId() > maxId) {
                 maxId = client.getId();
+            }
+        }
+        return maxId + 1;
+    }
+
+    public int getNextSubscriptionId() {
+        int maxId = 0;
+        for (Subscription subscription : subscriptionService.getSubscriptions()) {
+            if (subscription.getId() > maxId) {
+                maxId = subscription.getId();
             }
         }
         return maxId + 1;
@@ -239,5 +259,22 @@ public class App {
 
     public SubscriptionService getSubscriptionService() {
         return subscriptionService;
+    }
+
+    public ReportService getReportService() {
+        return reportService;
+    }
+
+    public int getDefaultRentalDurationDays() {
+        return defaultRentalDurationDays;
+    }
+
+    public void setDefaultRentalDurationDays(int defaultRentalDurationDays) {
+        if (defaultRentalDurationDays > 0) {
+            this.defaultRentalDurationDays = defaultRentalDurationDays;
+            if (pricingService != null) {
+                pricingService.setDefaultRentalDurationDays(defaultRentalDurationDays);
+            }
+        }
     }
 }

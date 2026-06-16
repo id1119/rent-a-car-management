@@ -1,5 +1,5 @@
 id;name;lastName;gender;birthday;phoneNumber;address;userName;password;levelOfEducation;yearsOfExperience
-101;Stefan;Pavlovic;M;1991-03-14;+381641010101;Futoska 15 Novi Sad;stefan.pavlovic@rentacar.rs;agent101;HIGH;7
+101;Stefan;Pavlovic;M;1991-03-14;+381641010101;Futoska 15 Novi Sad;agent;agent;HIGH;7
 102;Tamara;Milosevic;F;1995-08-22;+381642020202;Bulevar Kralja Aleksandra 88 Beograd;tamara.milosevic@rentacar.rs;agent102;COLLEGE;5
 103;Vladimir;Ristic;M;1988-12-09;+381643030303;Kralja Petra 31 Nis;vladimir.ristic@rentacar.rs;agent103;HIGH;10
 104;Sara;Popovic;F;1999-05-17;+381644040404;Zmaj Jovina 9 Subotica;sara.popovic@rentacar.rs;agent104;MIDDLE;2

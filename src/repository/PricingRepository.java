@@ -32,40 +32,44 @@ public class PricingRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                LocalDate startDate = LocalDate.parse(parts[1]);
-                LocalDate endDate = LocalDate.parse(parts[2]);
-                double annualSubscription = Double.parseDouble(parts[3]);
-                double penaltyPerDay = Double.parseDouble(parts[4]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    LocalDate startDate = LocalDate.parse(parts[1]);
+                    LocalDate endDate = LocalDate.parse(parts[2]);
+                    double annualSubscription = Double.parseDouble(parts[3]);
+                    double penaltyPerDay = Double.parseDouble(parts[4]);
 
-                Map<VehicleCategory, Double> categoryPrices = new HashMap<>();
-                categoryPrices.put(VehicleCategory.ECONOMY, Double.parseDouble(parts[5]));
-                categoryPrices.put(VehicleCategory.STANDARD, Double.parseDouble(parts[6]));
-                categoryPrices.put(VehicleCategory.FAMILY, Double.parseDouble(parts[7]));
-                categoryPrices.put(VehicleCategory.LUXURY, Double.parseDouble(parts[8]));
+                    Map<VehicleCategory, Double> categoryPrices = new HashMap<>();
+                    categoryPrices.put(VehicleCategory.ECONOMY, Double.parseDouble(parts[5]));
+                    categoryPrices.put(VehicleCategory.STANDARD, Double.parseDouble(parts[6]));
+                    categoryPrices.put(VehicleCategory.FAMILY, Double.parseDouble(parts[7]));
+                    categoryPrices.put(VehicleCategory.LUXURY, Double.parseDouble(parts[8]));
 
-                Map<ExtraService, Double> extraServicesPrices = new HashMap<>();
-                extraServicesPrices.put(ExtraService.GPS, Double.parseDouble(parts[9]));
-                extraServicesPrices.put(ExtraService.CHILD_SEAT, Double.parseDouble(parts[10]));
-                extraServicesPrices.put(ExtraService.ADDITIONAL_INSURANCE, Double.parseDouble(parts[11]));
-                extraServicesPrices.put(ExtraService.EXTENDED_USE, Double.parseDouble(parts[12]));
+                    Map<ExtraService, Double> extraServicesPrices = new HashMap<>();
+                    extraServicesPrices.put(ExtraService.GPS, Double.parseDouble(parts[9]));
+                    extraServicesPrices.put(ExtraService.CHILD_SEAT, Double.parseDouble(parts[10]));
+                    extraServicesPrices.put(ExtraService.ADDITIONAL_INSURANCE, Double.parseDouble(parts[11]));
+                    extraServicesPrices.put(ExtraService.EXTENDED_USE, Double.parseDouble(parts[12]));
 
-                Map<ClientCategory, Double> clientCategoryDiscounts = new HashMap<>();
-                clientCategoryDiscounts.put(ClientCategory.STUDENT, Double.parseDouble(parts[13]));
-                clientCategoryDiscounts.put(ClientCategory.PENSIONER, Double.parseDouble(parts[14]));
-                clientCategoryDiscounts.put(ClientCategory.COMPANY, Double.parseDouble(parts[15]));
+                    Map<ClientCategory, Double> clientCategoryDiscounts = new HashMap<>();
+                    clientCategoryDiscounts.put(ClientCategory.STUDENT, Double.parseDouble(parts[13]));
+                    clientCategoryDiscounts.put(ClientCategory.PENSIONER, Double.parseDouble(parts[14]));
+                    clientCategoryDiscounts.put(ClientCategory.COMPANY, Double.parseDouble(parts[15]));
 
-                Pricing pricing = new Pricing(
-                        id,
-                        startDate,
-                        endDate,
-                        annualSubscription,
-                        penaltyPerDay,
-                        categoryPrices,
-                        extraServicesPrices,
-                        clientCategoryDiscounts
-                );
-                pricings.add(pricing);
+                    Pricing pricing = new Pricing(
+                            id,
+                            startDate,
+                            endDate,
+                            annualSubscription,
+                            penaltyPerDay,
+                            categoryPrices,
+                            extraServicesPrices,
+                            clientCategoryDiscounts
+                    );
+                    pricings.add(pricing);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid pricing row: " + line);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

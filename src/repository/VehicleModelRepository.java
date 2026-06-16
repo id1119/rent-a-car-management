@@ -27,13 +27,17 @@ public class VehicleModelRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                String manufacturer = parts[1];
-                String model = parts[2];
-                VehicleCategory vehicleCategory = VehicleCategory.valueOf(parts[3]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String manufacturer = parts[1];
+                    String model = parts[2];
+                    VehicleCategory vehicleCategory = VehicleCategory.valueOf(parts[3]);
 
-                VehicleModel vehicleModel = new VehicleModel(id, manufacturer, model, vehicleCategory);
-                vehicleModels.add(vehicleModel);
+                    VehicleModel vehicleModel = new VehicleModel(id, manufacturer, model, vehicleCategory);
+                    vehicleModels.add(vehicleModel);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid vehicle model row: " + line);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

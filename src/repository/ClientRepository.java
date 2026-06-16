@@ -7,6 +7,7 @@ import model.SubscriptionStatus;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,48 +24,57 @@ public class ClientRepository {
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";", -1);
-                if (parts.length != 15) {
+                if (parts.length != 15 && parts.length != 16) {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                String lastName = parts[2];
-                String gender = parts[3];
-                LocalDate birthday = LocalDate.parse(parts[4]);
-                String phoneNumber = parts[5];
-                String address = parts[6];
-                String userName = parts[7];
-                String password = parts[8];
-                LocalDate driversLicenseIssueDate = LocalDate.parse(parts[9]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String name = parts[1];
+                    String lastName = parts[2];
+                    String gender = parts[3];
+                    LocalDate birthday = LocalDate.parse(parts[4]);
+                    String phoneNumber = parts[5];
+                    String address = parts[6];
+                    String userName = parts[7];
+                    String password = parts[8];
+                    LocalDate driversLicenseIssueDate = LocalDate.parse(parts[9]);
 
-                ClientCategory clientCategory = null;
-                if (!parts[10].isEmpty()) {
-                    clientCategory = ClientCategory.valueOf(parts[10]);
+                    ClientCategory clientCategory = null;
+                    if (!parts[10].isEmpty()) {
+                        clientCategory = ClientCategory.valueOf(parts[10]);
+                    }
+
+                    int subscriptionId = Integer.parseInt(parts[11]);
+                    SubscriptionStatus subscriptionStatus = SubscriptionStatus.valueOf(parts[12]);
+                    LocalDate subscriptionExpirationDate = LocalDate.parse(parts[13]);
+                    Subscription subscription = new Subscription(subscriptionId, subscriptionStatus, subscriptionExpirationDate);
+                    int lateReturnsCount = Integer.parseInt(parts[14]);
+                    LocalDateTime reservationBlockedUntil = null;
+                    if (parts.length == 16 && !parts[15].isEmpty()) {
+                        reservationBlockedUntil = LocalDateTime.parse(parts[15]);
+                    }
+
+                    Client client = new Client(
+                            id,
+                            name,
+                            lastName,
+                            gender,
+                            birthday,
+                            phoneNumber,
+                            address,
+                            userName,
+                            password,
+                            driversLicenseIssueDate,
+                            clientCategory,
+                            subscription
+                    );
+                    client.setLateReturnsCount(lateReturnsCount);
+                    client.setReservationBlockedUntil(reservationBlockedUntil);
+                    clients.add(client);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid client row: " + line);
                 }
-
-                int subscriptionId = Integer.parseInt(parts[11]);
-                SubscriptionStatus subscriptionStatus = SubscriptionStatus.valueOf(parts[12]);
-                LocalDate subscriptionExpirationDate = LocalDate.parse(parts[13]);
-                Subscription subscription = new Subscription(subscriptionId, subscriptionStatus, subscriptionExpirationDate);
-                int lateReturnsCount = Integer.parseInt(parts[14]);
-
-                Client client = new Client(
-                        id,
-                        name,
-                        lastName,
-                        gender,
-                        birthday,
-                        phoneNumber,
-                        address,
-                        userName,
-                        password,
-                        driversLicenseIssueDate,
-                        clientCategory,
-                        subscription
-                );
-                client.setLateReturnsCount(lateReturnsCount);
-                clients.add(client);
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
@@ -79,7 +89,7 @@ public class ClientRepository {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            writer.write("id;name;lastName;gender;birthday;phoneNumber;address;userName;password;driversLicenseIssueDate;clientCategory;subscriptionId;subscriptionStatus;subscriptionExpirationDate;lateReturnsCount");
+            writer.write("id;name;lastName;gender;birthday;phoneNumber;address;userName;password;driversLicenseIssueDate;clientCategory;subscriptionId;subscriptionStatus;subscriptionExpirationDate;lateReturnsCount;reservationBlockedUntil");
             writer.newLine();
 
             for (Client client : clients) {
@@ -89,6 +99,10 @@ public class ClientRepository {
                 }
 
                 Subscription subscription = client.getSubscription();
+                String reservationBlockedUntil = "";
+                if (client.getReservationBlockedUntil() != null) {
+                    reservationBlockedUntil = client.getReservationBlockedUntil().toString();
+                }
 
                 String line = String.join(";",
                         String.valueOf(client.getId()),
@@ -105,7 +119,8 @@ public class ClientRepository {
                         String.valueOf(subscription.getId()),
                         subscription.getSubscriptionStatus().name(),
                         subscription.getExpirationDate().toString(),
-                        String.valueOf(client.getLateReturnsCount())
+                        String.valueOf(client.getLateReturnsCount()),
+                        reservationBlockedUntil
                 );
 
                 writer.write(line);

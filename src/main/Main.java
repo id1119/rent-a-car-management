@@ -22,7 +22,17 @@ public class Main {
             GuiTheme.applyDefaults();
 
             App app = new App();
-            app.loadAll();
+            try {
+                app.loadAll();
+            } catch (RuntimeException e) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Application data could not be loaded.\n" + e.getMessage(),
+                        "Startup error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                System.exit(1);
+            }
 
             LoginFrame loginFrame = new LoginFrame(app);
             loginFrame.setVisible(true);

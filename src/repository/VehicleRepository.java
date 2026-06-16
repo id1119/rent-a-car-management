@@ -28,19 +28,23 @@ public class VehicleRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                String registration = parts[1];
-                VehicleStatus vehicleStatus = VehicleStatus.valueOf(parts[2]);
-                int mileage = Integer.parseInt(parts[3]);
-                int vehicleModelId = Integer.parseInt(parts[4]);
-                VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String registration = parts[1];
+                    VehicleStatus vehicleStatus = VehicleStatus.valueOf(parts[2]);
+                    int mileage = Integer.parseInt(parts[3]);
+                    int vehicleModelId = Integer.parseInt(parts[4]);
+                    VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
 
-                if (vehicleModel == null) {
-                    continue;
+                    if (vehicleModel == null) {
+                        continue;
+                    }
+
+                    Vehicle vehicle = new Vehicle(id, registration, vehicleStatus, mileage, vehicleModel);
+                    vehicles.add(vehicle);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid vehicle row: " + line);
                 }
-
-                Vehicle vehicle = new Vehicle(id, registration, vehicleStatus, mileage, vehicleModel);
-                vehicles.add(vehicle);
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

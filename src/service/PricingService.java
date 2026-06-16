@@ -13,12 +13,23 @@ import java.util.List;
 
 public class PricingService {
     private List<Pricing> pricings = new ArrayList<>();
+    private int defaultRentalDurationDays = 3;
 
     public PricingService() {
     }
 
     public List<Pricing> getPricings() {
         return pricings;
+    }
+
+    public int getDefaultRentalDurationDays() {
+        return defaultRentalDurationDays;
+    }
+
+    public void setDefaultRentalDurationDays(int defaultRentalDurationDays) {
+        if (defaultRentalDurationDays > 0) {
+            this.defaultRentalDurationDays = defaultRentalDurationDays;
+        }
     }
 
     public void addPricing(Pricing pricing) {
@@ -94,6 +105,14 @@ public class PricingService {
         return discount;
     }
 
+    public double getPenaltyPerDay(LocalDate date) {
+        Pricing pricing = findValidPricing(date);
+        if (pricing == null) {
+            return 0;
+        }
+        return pricing.getPenaltyPerDay();
+    }
+
     public double calculateReservationPrice(VehicleModel vehicleModel, ClientCategory clientCategory, LocalDate startDate, LocalDate endDate, List<ExtraService> extraServices) {
         if (vehicleModel == null || startDate == null || endDate == null || endDate.isBefore(startDate)) {
             return 0;
@@ -109,17 +128,28 @@ public class PricingService {
         double extraServicesPrice = 0;
         if (extraServices != null) {
             for (ExtraService extraService : extraServices) {
-                if (extraService == ExtraService.EXTENDED_USE) {
-                    long extendedDays = numberOfDays - 3;
-                    if (extendedDays > 0) {
-                        extraServicesPrice += getExtraServicePrice(extraService, startDate) * extendedDays;
-                    }
-                } else {
-                    extraServicesPrice += getExtraServicePrice(extraService, startDate);
-                }
+                extraServicesPrice += calculateExtraServiceCharge(extraService, startDate, endDate, startDate);
             }
         }
 
         return rentalPrice + extraServicesPrice;
+    }
+
+    public double calculateExtraServiceCharge(ExtraService extraService, LocalDate startDate, LocalDate endDate, LocalDate pricingDate) {
+        if (extraService == null || startDate == null || endDate == null || pricingDate == null || endDate.isBefore(startDate)) {
+            return 0;
+        }
+
+        double price = getExtraServicePrice(extraService, pricingDate);
+        if (extraService != ExtraService.EXTENDED_USE) {
+            return price;
+        }
+
+        long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        long extendedDays = numberOfDays - defaultRentalDurationDays;
+        if (extendedDays <= 0) {
+            return 0;
+        }
+        return price * extendedDays;
     }
 }

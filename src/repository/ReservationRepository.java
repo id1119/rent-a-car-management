@@ -33,36 +33,40 @@ public class ReservationRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                ReservationStatus reservationStatus = ReservationStatus.valueOf(parts[1]);
-                int clientId = Integer.parseInt(parts[2]);
-                int vehicleModelId = Integer.parseInt(parts[3]);
-                LocalDate startDate = LocalDate.parse(parts[4]);
-                LocalDate endDate = LocalDate.parse(parts[5]);
-                double price = Double.parseDouble(parts[6]);
-                Integer assignedVehicleId = parseOptionalInteger(parts[7]);
-                List<ExtraService> extraServices = parseExtraServices(parts[8]);
-                LocalDateTime cancellationTime = parseOptionalDateTime(parts[9]);
-                LocalDateTime createdAt = parseOptionalDateTime(parts[10]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    ReservationStatus reservationStatus = ReservationStatus.valueOf(parts[1]);
+                    int clientId = Integer.parseInt(parts[2]);
+                    int vehicleModelId = Integer.parseInt(parts[3]);
+                    LocalDate startDate = LocalDate.parse(parts[4]);
+                    LocalDate endDate = LocalDate.parse(parts[5]);
+                    double price = Double.parseDouble(parts[6]);
+                    Integer assignedVehicleId = parseOptionalInteger(parts[7]);
+                    List<ExtraService> extraServices = parseExtraServices(parts[8]);
+                    LocalDateTime cancellationTime = parseOptionalDateTime(parts[9]);
+                    LocalDateTime createdAt = parseOptionalDateTime(parts[10]);
 
-                Client client = findClientById(clients, clientId);
-                VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
-                Vehicle assignedVehicle = null;
-                if (assignedVehicleId != null) {
-                    assignedVehicle = findVehicleById(vehicles, assignedVehicleId);
+                    Client client = findClientById(clients, clientId);
+                    VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
+                    Vehicle assignedVehicle = null;
+                    if (assignedVehicleId != null) {
+                        assignedVehicle = findVehicleById(vehicles, assignedVehicleId);
+                    }
+
+                    if (client == null || vehicleModel == null) {
+                        continue;
+                    }
+
+                    Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, extraServices);
+                    reservation.setReservationStatus(reservationStatus);
+                    reservation.setAssignedVehicle(assignedVehicle);
+                    reservation.setCancellationTime(cancellationTime);
+                    reservation.setCreatedAt(createdAt);
+
+                    reservations.add(reservation);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid reservation row: " + line);
                 }
-
-                if (client == null || vehicleModel == null) {
-                    continue;
-                }
-
-                Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, extraServices);
-                reservation.setReservationStatus(reservationStatus);
-                reservation.setAssignedVehicle(assignedVehicle);
-                reservation.setCancellationTime(cancellationTime);
-                reservation.setCreatedAt(createdAt);
-
-                reservations.add(reservation);
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

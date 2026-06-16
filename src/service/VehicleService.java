@@ -32,7 +32,7 @@ public class VehicleService {
         }
         List<Vehicle> availableVehicles = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
-            if (vehicle.getVehicleModel().equals(vehicleModel)) {
+            if (vehicle != null && hasSameModelId(vehicle.getVehicleModel(), vehicleModel)) {
                 availableVehicles.add(vehicle);
             }
         }
@@ -44,11 +44,18 @@ public class VehicleService {
         List<Vehicle> availableVehicles = new ArrayList<>();
 
         for (Vehicle vehicle : vehiclesByModel) {
-            if (vehicle.isAvailable()) {
+            if (vehicle != null && vehicle.isAvailable()) {
                 availableVehicles.add(vehicle);
             }
         }
 
         return availableVehicles;
+    }
+
+    private boolean hasSameModelId(VehicleModel first, VehicleModel second) {
+        if (first == null || second == null) {
+            return false;
+        }
+        return first.getId() == second.getId();
     }
 }

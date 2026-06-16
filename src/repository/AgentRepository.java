@@ -25,33 +25,37 @@ public class AgentRepository {
                     continue;
                 }
 
-                int id = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                String lastName = parts[2];
-                String gender = parts[3];
-                LocalDate birthday = LocalDate.parse(parts[4]);
-                String phoneNumber = parts[5];
-                String address = parts[6];
-                String userName = parts[7];
-                String password = parts[8];
-                LevelOfEducation levelOfEducation = LevelOfEducation.valueOf(parts[9]);
-                int yearsOfExperience = Integer.parseInt(parts[10]);
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String name = parts[1];
+                    String lastName = parts[2];
+                    String gender = parts[3];
+                    LocalDate birthday = LocalDate.parse(parts[4]);
+                    String phoneNumber = parts[5];
+                    String address = parts[6];
+                    String userName = parts[7];
+                    String password = parts[8];
+                    LevelOfEducation levelOfEducation = LevelOfEducation.valueOf(parts[9]);
+                    int yearsOfExperience = Integer.parseInt(parts[10]);
 
-                Agent agent = new Agent(
-                        id,
-                        name,
-                        lastName,
-                        gender,
-                        birthday,
-                        phoneNumber,
-                        address,
-                        userName,
-                        password,
-                        levelOfEducation,
-                        yearsOfExperience
-                );
+                    Agent agent = new Agent(
+                            id,
+                            name,
+                            lastName,
+                            gender,
+                            birthday,
+                            phoneNumber,
+                            address,
+                            userName,
+                            password,
+                            levelOfEducation,
+                            yearsOfExperience
+                    );
 
-                agents.add(agent);
+                    agents.add(agent);
+                } catch (RuntimeException e) {
+                    System.out.println("Skipping invalid agent row: " + line);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());

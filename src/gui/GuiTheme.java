@@ -85,6 +85,7 @@ public class GuiTheme {
     }
 
     public static void styleTable(JTable table) {
+        table.setAutoCreateRowSorter(true);
         table.setRowHeight(30);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));

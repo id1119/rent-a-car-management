@@ -1,4 +1,4 @@
 id;name;lastName;gender;birthday;phoneNumber;address;userName;password;levelOfEducation;yearsOfExperience
-201;Milos;Knezevic;M;1984-01-11;+381646060606;Knez Mihailova 18 Beograd;milos.knezevic@rentacar.rs;admin201;COLLEGE;14
+201;Milos;Knezevic;M;1984-01-11;+381646060606;Knez Mihailova 18 Beograd;admin;admin;COLLEGE;14
 202;Katarina;Lazic;F;1989-06-26;+381647070707;Narodnog Fronta 21 Novi Sad;katarina.lazic@rentacar.rs;admin202;COLLEGE;9
 203;Nemanja;Bogdanovic;M;1979-09-05;+381648080808;Cara Dusana 62 Nis;nemanja.bogdanovic@rentacar.rs;admin203;HIGH;18

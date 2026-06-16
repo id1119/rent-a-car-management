@@ -3,9 +3,14 @@ package gui;
 import app.App;
 import model.Client;
 import model.ExtraService;
+import model.Pricing;
 import model.Reservation;
+import model.ReservationStatus;
 import model.Subscription;
+import model.SubscriptionStatus;
+import model.VehicleCategory;
 import model.VehicleModel;
+import model.VehicleRental;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,6 +23,10 @@ import java.util.List;
 public class ClientMainFrame extends JFrame {
     private App app;
     private Client client;
+    private JTable reservationsTable;
+    private DefaultTableModel reservationsTableModel;
+    private DefaultTableModel spendingSummaryTableModel;
+    private DefaultTableModel spendingDetailsTableModel;
 
     public ClientMainFrame(App app, Client client) {
         this.app = app;
@@ -55,6 +64,7 @@ public class ClientMainFrame extends JFrame {
         tabbedPane.setBackground(GuiTheme.BACKGROUND);
         tabbedPane.addTab("Profile", createProfilePanel());
         tabbedPane.addTab("My Reservations", createReservationsPanel());
+        tabbedPane.addTab("My Spending", createSpendingPanel());
         tabbedPane.addTab("Available Models", createAvailableModelsPanel());
         tabbedPane.addTab("New Reservation", createNewReservationPanel());
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
@@ -82,6 +92,7 @@ public class ClientMainFrame extends JFrame {
         addRow(detailsPanel, "Driver license issued", String.valueOf(client.getDriversLicenseIssueDate()));
         addRow(detailsPanel, "Client category", String.valueOf(client.getClientCategory()));
         addRow(detailsPanel, "Late returns", String.valueOf(client.getLateReturnsCount()));
+        addRow(detailsPanel, "Reservation blocked until", String.valueOf(client.getReservationBlockedUntil()));
 
         Subscription subscription = client.getSubscription();
         if (subscription != null) {
@@ -90,26 +101,48 @@ public class ClientMainFrame extends JFrame {
         }
 
         outerPanel.add(detailsPanel, BorderLayout.CENTER);
+        JButton renewalButton = GuiTheme.createPrimaryButton("Request subscription renewal");
+        renewalButton.addActionListener(e -> requestSubscriptionRenewal());
+        outerPanel.add(renewalButton, BorderLayout.SOUTH);
         return wrapWithMargin(outerPanel);
     }
 
     private JPanel createReservationsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
         panel.setLayout(new BorderLayout(0, 14));
-        panel.add(GuiTheme.createSectionLabel("My reservations"), BorderLayout.NORTH);
+
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
+        titlePanel.add(GuiTheme.createSectionLabel("My reservations"), BorderLayout.WEST);
+
+        JButton cancelButton = GuiTheme.createSecondaryButton("Cancel selected");
+        cancelButton.addActionListener(e -> cancelSelectedReservation());
+        titlePanel.add(cancelButton, BorderLayout.EAST);
+        panel.add(titlePanel, BorderLayout.NORTH);
 
         String[] columns = {"ID", "Model", "Start", "End", "Status", "Price"};
-        DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
+        reservationsTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
+        refreshReservationsTable();
+
+        reservationsTable = new JTable(reservationsTableModel);
+        reservationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        GuiTheme.styleTable(reservationsTable);
+        panel.add(new JScrollPane(reservationsTable), BorderLayout.CENTER);
+        return wrapWithMargin(panel);
+    }
+
+    private void refreshReservationsTable() {
+        reservationsTableModel.setRowCount(0);
         for (Reservation reservation : app.getReservationService().getReservations()) {
             if (reservation.getClient().getId() == client.getId()) {
                 VehicleModel vehicleModel = reservation.getVehicleModel();
-                tableModel.addRow(new Object[]{
+                reservationsTableModel.addRow(new Object[]{
                         reservation.getId(),
                         vehicleModel.getManufacturer() + " " + vehicleModel.getModel(),
                         reservation.getStartDate(),
@@ -119,17 +152,165 @@ public class ClientMainFrame extends JFrame {
                 });
             }
         }
+    }
 
-        JTable table = new JTable(tableModel);
+    private JPanel createSpendingPanel() {
+        JPanel panel = GuiTheme.createCardPanel();
+        panel.setLayout(new BorderLayout(0, 14));
+
+        JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
+        titlePanel.setOpaque(false);
+        titlePanel.add(GuiTheme.createSectionLabel("My spending"));
+
+        JLabel hintLabel = new JLabel("Approved reservations, late-return penalties and current subscription cost.");
+        hintLabel.setForeground(GuiTheme.MUTED_TEXT);
+        titlePanel.add(hintLabel);
+        panel.add(titlePanel, BorderLayout.NORTH);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createSpendingSummaryPanel(), createSpendingDetailsPanel());
+        splitPane.setResizeWeight(0.35);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        panel.add(splitPane, BorderLayout.CENTER);
+
+        refreshSpendingTables();
+        return wrapWithMargin(panel);
+    }
+
+    private JPanel createSpendingSummaryPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setOpaque(false);
+        panel.add(GuiTheme.createSectionLabel("Summary"), BorderLayout.NORTH);
+
+        spendingSummaryTableModel = new DefaultTableModel(new String[]{"Metric", "Amount"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        JTable table = new JTable(spendingSummaryTableModel);
         GuiTheme.styleTable(table);
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
-        return wrapWithMargin(panel);
+        return panel;
+    }
+
+    private JPanel createSpendingDetailsPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setOpaque(false);
+        panel.add(GuiTheme.createSectionLabel("Details"), BorderLayout.NORTH);
+
+        spendingDetailsTableModel = new DefaultTableModel(new String[]{"Type", "Reference", "Date", "Amount"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        JTable table = new JTable(spendingDetailsTableModel);
+        GuiTheme.styleTable(table);
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void refreshSpendingTables() {
+        if (spendingSummaryTableModel == null || spendingDetailsTableModel == null) {
+            return;
+        }
+
+        spendingSummaryTableModel.setRowCount(0);
+        spendingDetailsTableModel.setRowCount(0);
+
+        double reservationTotal = 0;
+        double penaltyTotal = 0;
+        double subscriptionTotal = calculateSubscriptionSpending();
+
+        for (Reservation reservation : app.getReservationService().getReservations()) {
+            if (reservation.getClient().getId() != client.getId() || reservation.getReservationStatus() != ReservationStatus.APPROVED) {
+                continue;
+            }
+
+            reservationTotal += reservation.getPrice();
+            VehicleModel vehicleModel = reservation.getVehicleModel();
+            spendingDetailsTableModel.addRow(new Object[]{
+                    "Reservation",
+                    "#" + reservation.getId() + " - " + vehicleModel.getManufacturer() + " " + vehicleModel.getModel(),
+                    reservation.getStartDate(),
+                    reservation.getPrice()
+            });
+        }
+
+        for (VehicleRental rental : app.getVehicleRentalService().getVehicleRentals()) {
+            if (rental.getReservation() == null ||
+                    rental.getReservation().getClient().getId() != client.getId() ||
+                    rental.getPenaltyForBeingLate() <= 0) {
+                continue;
+            }
+
+            penaltyTotal += rental.getPenaltyForBeingLate();
+            spendingDetailsTableModel.addRow(new Object[]{
+                    "Late penalty",
+                    "Rental #" + rental.getId(),
+                    rental.getActualEndRentDate() == null ? rental.getEndRentDate() : rental.getActualEndRentDate(),
+                    rental.getPenaltyForBeingLate()
+            });
+        }
+
+        if (subscriptionTotal > 0) {
+            spendingDetailsTableModel.addRow(new Object[]{
+                    "Subscription",
+                    "Annual membership",
+                    client.getSubscription().getExpirationDate().minusYears(1),
+                    subscriptionTotal
+            });
+        }
+
+        spendingSummaryTableModel.addRow(new Object[]{"Approved reservation total", reservationTotal});
+        spendingSummaryTableModel.addRow(new Object[]{"Late penalty total", penaltyTotal});
+        spendingSummaryTableModel.addRow(new Object[]{"Subscription total", subscriptionTotal});
+        spendingSummaryTableModel.addRow(new Object[]{"Grand total", reservationTotal + penaltyTotal + subscriptionTotal});
+    }
+
+    private double calculateSubscriptionSpending() {
+        if (client.getSubscription() == null || client.getSubscription().getExpirationDate() == null) {
+            return 0;
+        }
+
+        LocalDate subscriptionStartDate = client.getSubscription().getExpirationDate().minusYears(1);
+        Pricing pricing = app.getPricingService().findValidPricing(subscriptionStartDate);
+        if (pricing == null) {
+            return 0;
+        }
+        return pricing.getAnnualSubscription();
     }
 
     private JPanel createAvailableModelsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
         panel.setLayout(new BorderLayout(0, 14));
-        panel.add(GuiTheme.createSectionLabel("Vehicle models"), BorderLayout.NORTH);
+
+        JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
+        titlePanel.setOpaque(false);
+        titlePanel.add(GuiTheme.createSectionLabel("Available vehicle models"));
+
+        JLabel hintLabel = new JLabel("Filter by model, manufacturer, category and availability date range.");
+        hintLabel.setForeground(GuiTheme.MUTED_TEXT);
+        titlePanel.add(hintLabel);
+        panel.add(titlePanel, BorderLayout.NORTH);
+
+        JPanel filterPanel = new JPanel(new GridBagLayout());
+        filterPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 0, 6, 12);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JTextField manufacturerField = createTextField("");
+        JTextField modelField = createTextField("");
+        JComboBox<String> categoryComboBox = new JComboBox<>();
+        categoryComboBox.addItem("ANY");
+        for (VehicleCategory category : VehicleCategory.values()) {
+            categoryComboBox.addItem(category.name());
+        }
+        JTextField startDateField = createTextField("2026-07-01");
+        JTextField endDateField = createTextField("2026-07-05");
 
         String[] columns = {"ID", "Manufacturer", "Model", "Category"};
         DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
@@ -139,18 +320,38 @@ public class ClientMainFrame extends JFrame {
             }
         };
 
-        for (VehicleModel vehicleModel : app.getVehicleModels()) {
-            tableModel.addRow(new Object[]{
-                    vehicleModel.getId(),
-                    vehicleModel.getManufacturer(),
-                    vehicleModel.getModel(),
-                    vehicleModel.getVehicleCategory()
-            });
-        }
-
         JTable table = new JTable(tableModel);
         GuiTheme.styleTable(table);
+
+        JButton searchButton = GuiTheme.createPrimaryButton("Search available models");
+        searchButton.addActionListener(e -> refreshAvailableModelsTable(
+                tableModel,
+                manufacturerField,
+                modelField,
+                categoryComboBox,
+                startDateField,
+                endDateField
+        ));
+
+        addFormRow(filterPanel, gbc, 0, "Manufacturer", manufacturerField);
+        addFormRow(filterPanel, gbc, 1, "Model", modelField);
+        addFormRow(filterPanel, gbc, 2, "Category", categoryComboBox);
+        addFormRow(filterPanel, gbc, 3, "Start date", startDateField);
+        addFormRow(filterPanel, gbc, 4, "End date", endDateField);
+
+        JPanel topPanel = new JPanel(new BorderLayout(0, 12));
+        topPanel.setOpaque(false);
+        topPanel.add(filterPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(searchButton);
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        panel.add(topPanel, BorderLayout.WEST);
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        refreshAvailableModelsTable(tableModel, manufacturerField, modelField, categoryComboBox, startDateField, endDateField);
         return wrapWithMargin(panel);
     }
 
@@ -162,7 +363,7 @@ public class ClientMainFrame extends JFrame {
         titlePanel.setOpaque(false);
         titlePanel.add(GuiTheme.createSectionLabel("New reservation request"));
 
-        JLabel hintLabel = new JLabel("Choose a model and date range. Creation logic will be connected through ReservationService.");
+        JLabel hintLabel = new JLabel("Choose a model, date range and optional extra services.");
         hintLabel.setForeground(GuiTheme.MUTED_TEXT);
         titlePanel.add(hintLabel);
         panel.add(titlePanel, BorderLayout.NORTH);
@@ -245,6 +446,117 @@ public class ClientMainFrame extends JFrame {
         return textField;
     }
 
+    private void refreshAvailableModelsTable(DefaultTableModel tableModel, JTextField manufacturerField, JTextField modelField, JComboBox<String> categoryComboBox, JTextField startDateField, JTextField endDateField) {
+        LocalDate startDate;
+        LocalDate endDate;
+
+        try {
+            startDate = LocalDate.parse(startDateField.getText().trim());
+            endDate = LocalDate.parse(endDateField.getText().trim());
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Dates must use yyyy-mm-dd format.");
+            return;
+        }
+
+        if (endDate.isBefore(startDate)) {
+            JOptionPane.showMessageDialog(this, "End date cannot be before start date.");
+            return;
+        }
+
+        String manufacturerFilter = manufacturerField.getText().trim().toLowerCase();
+        String modelFilter = modelField.getText().trim().toLowerCase();
+        String categoryFilter = (String) categoryComboBox.getSelectedItem();
+
+        tableModel.setRowCount(0);
+        for (VehicleModel vehicleModel : app.getVehicleModels()) {
+            if (!manufacturerFilter.isEmpty() && !vehicleModel.getManufacturer().toLowerCase().contains(manufacturerFilter)) {
+                continue;
+            }
+
+            if (!modelFilter.isEmpty() && !vehicleModel.getModel().toLowerCase().contains(modelFilter)) {
+                continue;
+            }
+
+            if (categoryFilter != null && !categoryFilter.equals("ANY") && !vehicleModel.getVehicleCategory().name().equals(categoryFilter)) {
+                continue;
+            }
+
+            if (!app.getReservationService().hasAvailableVehicle(vehicleModel, startDate, endDate)) {
+                continue;
+            }
+
+            tableModel.addRow(new Object[]{
+                    vehicleModel.getId(),
+                    vehicleModel.getManufacturer(),
+                    vehicleModel.getModel(),
+                    vehicleModel.getVehicleCategory()
+            });
+        }
+    }
+
+    private void requestSubscriptionRenewal() {
+        if (client.getSubscription() == null) {
+            JOptionPane.showMessageDialog(this, "Client has no subscription.");
+            return;
+        }
+
+        if (client.getSubscription().getSubscriptionStatus() == SubscriptionStatus.PENDING_APPROVAL) {
+            JOptionPane.showMessageDialog(this, "Renewal request is already pending.");
+            return;
+        }
+
+        boolean requested = app.getSubscriptionService().requestRenewal(client);
+        if (!requested) {
+            JOptionPane.showMessageDialog(this, app.getSubscriptionService().getRenewalRequestError(client));
+            app.saveAll();
+            new ClientMainFrame(app, client).setVisible(true);
+            dispose();
+            return;
+        }
+
+        app.saveAll();
+        JOptionPane.showMessageDialog(this, "Renewal request submitted.");
+        new ClientMainFrame(app, client).setVisible(true);
+        dispose();
+    }
+
+    private void cancelSelectedReservation() {
+        Reservation reservation = getSelectedReservation();
+        if (reservation == null) {
+            JOptionPane.showMessageDialog(this, "Select a reservation first.");
+            return;
+        }
+
+        boolean canceled = app.getReservationService().cancelReservationByClient(reservation);
+        if (!canceled) {
+            JOptionPane.showMessageDialog(this, app.getReservationService().getReservationCancellationError(reservation));
+            return;
+        }
+
+        app.saveAll();
+        JOptionPane.showMessageDialog(this, "Reservation canceled. You cannot create a new reservation for the next 24 hours.");
+        new ClientMainFrame(app, client).setVisible(true);
+        dispose();
+    }
+
+    private Reservation getSelectedReservation() {
+        int selectedRow = reservationsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+
+        int modelRow = reservationsTable.convertRowIndexToModel(selectedRow);
+        int reservationId = (int) reservationsTableModel.getValueAt(modelRow, 0);
+
+        for (Reservation reservation : app.getReservationService().getReservations()) {
+            if (reservation.getId() == reservationId) {
+                return reservation;
+            }
+        }
+
+        return null;
+    }
+
     private void styleCheckBox(JCheckBox checkBox) {
         checkBox.setOpaque(false);
         checkBox.setForeground(GuiTheme.TEXT);
@@ -278,8 +590,9 @@ public class ClientMainFrame extends JFrame {
             extraServices.add(ExtraService.EXTENDED_USE);
         }
 
-        if (!app.getReservationService().canCreateReservation(client, selectedModel, startDate, endDate)) {
-            JOptionPane.showMessageDialog(this, "Reservation cannot be created. Check subscription, driver license, dates or vehicle availability.");
+        String reservationError = app.getReservationService().getReservationCreationError(client, selectedModel, startDate, endDate);
+        if (reservationError != null) {
+            JOptionPane.showMessageDialog(this, reservationError);
             return;
         }
 
