@@ -656,7 +656,7 @@ public class AgentMainFrame extends JFrame {
             return;
         }
 
-        boolean approved = app.getReservationService().approveReservation(reservation);
+        boolean approved = app.getReservationService().approveReservation(reservation, agent);
         if (!approved) {
             JOptionPane.showMessageDialog(this, "Reservation cannot be approved because no vehicle is available in that period.");
             return;
@@ -682,7 +682,7 @@ public class AgentMainFrame extends JFrame {
             return;
         }
 
-        boolean rejected = app.getReservationService().rejectReservation(reservation);
+        boolean rejected = app.getReservationService().rejectReservation(reservation, agent);
         if (!rejected) {
             JOptionPane.showMessageDialog(this, "Reservation was not rejected.");
             return;
@@ -719,7 +719,7 @@ public class AgentMainFrame extends JFrame {
             return;
         }
 
-        boolean marked = app.getReservationService().markNoShow(reservation);
+        boolean marked = app.getReservationService().markNoShow(reservation, agent);
         if (!marked) {
             JOptionPane.showMessageDialog(this, app.getReservationService().getNoShowError(reservation));
             return;
@@ -1150,6 +1150,7 @@ public class AgentMainFrame extends JFrame {
             }
         }
 
+        reservation.setIssueExtraServicesPrice(reservation.getIssueExtraServicesPrice() + addedPrice);
         reservation.setPrice(reservation.getPrice() + addedPrice);
         return addedPrice;
     }

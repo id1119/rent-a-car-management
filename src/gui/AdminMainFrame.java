@@ -1084,6 +1084,7 @@ public class AdminMainFrame extends JFrame {
         ReportService.FinancialReport report = app.getReportService().getFinancialReport(startDate, endDate);
         financialReportTableModel.addRow(new Object[]{"Subscription revenue", report.getSubscriptionRevenue()});
         financialReportTableModel.addRow(new Object[]{"Rental revenue", report.getRentalRevenue()});
+        financialReportTableModel.addRow(new Object[]{"Extra service revenue", report.getExtraServiceRevenue()});
         financialReportTableModel.addRow(new Object[]{"Penalty revenue", report.getPenaltyRevenue()});
         financialReportTableModel.addRow(new Object[]{"Total revenue", report.getTotalRevenue()});
         financialReportTableModel.addRow(new Object[]{"Salary expenses", report.getSalaryExpenses()});
@@ -1099,8 +1100,8 @@ public class AdminMainFrame extends JFrame {
         LocalDate twelveMonthsAgo = today.minusMonths(12).plusDays(1);
         LocalDate thirtyDaysAgo = today.minusDays(29);
 
-        revenueByClientCategoryChart.setData(toStringDoubleMap(app.getReportService().getRevenueByClientCategory(twelveMonthsAgo, today)));
-        agentWorkloadChart.setData(toDoubleMap(app.getReportService().countRentalsByAgent(thirtyDaysAgo, today)));
+        revenueByClientCategoryChart.setData(app.getReportService().getRevenueByClientCategoryChartData(twelveMonthsAgo, today));
+        agentWorkloadChart.setData(toDoubleMap(app.getReportService().countProcessedReservationsByAgent(thirtyDaysAgo, today)));
         reservationStatusesChart.setData(toStringDoubleMap(app.getReportService().countReservationsByStatus(thirtyDaysAgo, today)));
     }
 

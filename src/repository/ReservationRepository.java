@@ -2,6 +2,7 @@ package repository;
 
 import model.Client;
 import model.ExtraService;
+import model.Agent;
 import model.Reservation;
 import model.ReservationStatus;
 import model.Vehicle;
@@ -21,6 +22,10 @@ public class ReservationRepository {
     private static final String FILE_PATH = "data/reservations.csv";
 
     public List<Reservation> loadAll(List<Client> clients, List<VehicleModel> vehicleModels, List<Vehicle> vehicles) {
+        return loadAll(clients, vehicleModels, vehicles, new ArrayList<>());
+    }
+
+    public List<Reservation> loadAll(List<Client> clients, List<VehicleModel> vehicleModels, List<Vehicle> vehicles, List<Agent> agents) {
         List<Reservation> reservations = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
@@ -29,7 +34,7 @@ public class ReservationRepository {
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";", -1);
-                if (parts.length != 11) {
+                if (parts.length != 11 && parts.length != 15) {
                     continue;
                 }
 
@@ -45,6 +50,19 @@ public class ReservationRepository {
                     List<ExtraService> extraServices = parseExtraServices(parts[8]);
                     LocalDateTime cancellationTime = parseOptionalDateTime(parts[9]);
                     LocalDateTime createdAt = parseOptionalDateTime(parts[10]);
+                    double rentalBasePrice = price;
+                    double reservationExtraServicesPrice = 0;
+                    double issueExtraServicesPrice = 0;
+                    Agent processedByAgent = null;
+                    if (parts.length == 15) {
+                        rentalBasePrice = parseOptionalDouble(parts[11], price);
+                        reservationExtraServicesPrice = parseOptionalDouble(parts[12], 0);
+                        issueExtraServicesPrice = parseOptionalDouble(parts[13], 0);
+                        Integer processedByAgentId = parseOptionalInteger(parts[14]);
+                        if (processedByAgentId != null) {
+                            processedByAgent = findAgentById(agents, processedByAgentId);
+                        }
+                    }
 
                     Client client = findClientById(clients, clientId);
                     VehicleModel vehicleModel = findVehicleModelById(vehicleModels, vehicleModelId);
@@ -57,11 +75,12 @@ public class ReservationRepository {
                         continue;
                     }
 
-                    Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, extraServices);
+                    Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, rentalBasePrice, reservationExtraServicesPrice, issueExtraServicesPrice, extraServices);
                     reservation.setReservationStatus(reservationStatus);
                     reservation.setAssignedVehicle(assignedVehicle);
                     reservation.setCancellationTime(cancellationTime);
                     reservation.setCreatedAt(createdAt);
+                    reservation.setProcessedByAgent(processedByAgent);
 
                     reservations.add(reservation);
                 } catch (RuntimeException e) {
@@ -81,7 +100,7 @@ public class ReservationRepository {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            writer.write("id;reservationStatus;clientId;vehicleModelId;startDate;endDate;price;assignedVehicleId;extraServices;cancellationTime;createdAt");
+            writer.write("id;reservationStatus;clientId;vehicleModelId;startDate;endDate;price;assignedVehicleId;extraServices;cancellationTime;createdAt;rentalBasePrice;reservationExtraServicesPrice;issueExtraServicesPrice;processedByAgentId");
             writer.newLine();
 
             for (Reservation reservation : reservations) {
@@ -100,6 +119,11 @@ public class ReservationRepository {
                     createdAt = reservation.getCreatedAt().toString();
                 }
 
+                String processedByAgentId = "";
+                if (reservation.getProcessedByAgent() != null) {
+                    processedByAgentId = String.valueOf(reservation.getProcessedByAgent().getId());
+                }
+
                 String line = String.join(";",
                         String.valueOf(reservation.getId()),
                         reservation.getReservationStatus().name(),
@@ -111,7 +135,11 @@ public class ReservationRepository {
                         assignedVehicleId,
                         formatExtraServices(reservation.getExtraServices()),
                         cancellationTime,
-                        createdAt
+                        createdAt,
+                        String.valueOf(reservation.getRentalBasePrice()),
+                        String.valueOf(reservation.getReservationExtraServicesPrice()),
+                        String.valueOf(reservation.getIssueExtraServicesPrice()),
+                        processedByAgentId
                 );
 
                 writer.write(line);
@@ -164,6 +192,20 @@ public class ReservationRepository {
         return null;
     }
 
+    private Agent findAgentById(List<Agent> agents, int id) {
+        if (agents == null) {
+            return null;
+        }
+
+        for (Agent agent : agents) {
+            if (agent.getId() == id) {
+                return agent;
+            }
+        }
+
+        return null;
+    }
+
     private Integer parseOptionalInteger(String value) {
         if (value == null || value.isEmpty()) {
             return null;
@@ -176,6 +218,13 @@ public class ReservationRepository {
             return null;
         }
         return LocalDateTime.parse(value);
+    }
+
+    private double parseOptionalDouble(String value, double defaultValue) {
+        if (value == null || value.isEmpty()) {
+            return defaultValue;
+        }
+        return Double.parseDouble(value);
     }
 
     private List<ExtraService> parseExtraServices(String value) {

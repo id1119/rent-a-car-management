@@ -52,6 +52,25 @@ public class ReportService {
         return result;
     }
 
+    public Map<String, Integer> countProcessedReservationsByAgent(LocalDate startDate, LocalDate endDate) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Agent agent : agents) {
+            result.put(formatAgent(agent), 0);
+        }
+
+        for (Reservation reservation : reservationService.getReservations()) {
+            Agent processedByAgent = reservation.getProcessedByAgent();
+            LocalDate processedDate = reservation.getCreatedAt() == null ? reservation.getStartDate() : reservation.getCreatedAt().toLocalDate();
+            if (processedByAgent == null || !isDateInRange(processedDate, startDate, endDate)) {
+                continue;
+            }
+            String key = formatAgent(processedByAgent);
+            result.put(key, result.getOrDefault(key, 0) + 1);
+        }
+
+        return result;
+    }
+
     public Map<ReservationStatus, Integer> countReservationsByStatus(LocalDate startDate, LocalDate endDate) {
         Map<ReservationStatus, Integer> result = new LinkedHashMap<>();
         for (ReservationStatus status : ReservationStatus.values()) {
@@ -120,7 +139,8 @@ public class ReportService {
 
         for (Reservation reservation : reservationService.getReservations()) {
             if (reservation.getReservationStatus() == ReservationStatus.APPROVED && isDateInRange(reservation.getStartDate(), startDate, endDate)) {
-                report.rentalRevenue += reservation.getPrice();
+                report.rentalRevenue += reservation.getRentalBasePrice();
+                report.extraServiceRevenue += reservation.getTotalExtraServicesPrice();
             }
         }
 
@@ -177,6 +197,49 @@ public class ReportService {
         return result;
     }
 
+    public Map<String, Double> getRevenueByClientCategoryChartData(LocalDate startDate, LocalDate endDate) {
+        Map<String, Double> result = new LinkedHashMap<>();
+        for (ClientCategory clientCategory : ClientCategory.values()) {
+            result.put(clientCategory.name(), 0.0);
+        }
+        result.put("NO_CATEGORY", 0.0);
+
+        for (Reservation reservation : reservationService.getReservations()) {
+            if (reservation.getReservationStatus() != ReservationStatus.APPROVED || !isDateInRange(reservation.getStartDate(), startDate, endDate)) {
+                continue;
+            }
+
+            String key = getClientCategoryKey(reservation.getClient());
+            result.put(key, result.getOrDefault(key, 0.0) + reservation.getPrice());
+        }
+
+        for (Client client : clients) {
+            if (client.getSubscription() == null) {
+                continue;
+            }
+
+            LocalDate subscriptionStartDate = client.getSubscription().getExpirationDate().minusYears(1);
+            if (!isDateInRange(subscriptionStartDate, startDate, endDate)) {
+                continue;
+            }
+
+            Pricing pricing = pricingService.findValidPricing(subscriptionStartDate);
+            if (pricing != null) {
+                String key = getClientCategoryKey(client);
+                result.put(key, result.getOrDefault(key, 0.0) + pricing.getAnnualSubscription());
+            }
+        }
+
+        double total = 0;
+        for (Double value : result.values()) {
+            if (value != null) {
+                total += value;
+            }
+        }
+        result.put("TOTAL", total);
+        return result;
+    }
+
     private boolean isDateInRange(LocalDate date, LocalDate startDate, LocalDate endDate) {
         if (date == null || startDate == null || endDate == null) {
             return false;
@@ -186,6 +249,13 @@ public class ReportService {
 
     private String formatAgent(Agent agent) {
         return agent.getId() + " - " + agent.getName() + " " + agent.getLastName();
+    }
+
+    private String getClientCategoryKey(Client client) {
+        if (client == null || client.getClientCategory() == null) {
+            return "NO_CATEGORY";
+        }
+        return client.getClientCategory().name();
     }
 
     public static class ModelReport {
@@ -219,6 +289,7 @@ public class ReportService {
     public static class FinancialReport {
         private double subscriptionRevenue;
         private double rentalRevenue;
+        private double extraServiceRevenue;
         private double penaltyRevenue;
         private double salaryExpenses;
 
@@ -230,6 +301,10 @@ public class ReportService {
             return rentalRevenue;
         }
 
+        public double getExtraServiceRevenue() {
+            return extraServiceRevenue;
+        }
+
         public double getPenaltyRevenue() {
             return penaltyRevenue;
         }
@@ -239,7 +314,7 @@ public class ReportService {
         }
 
         public double getTotalRevenue() {
-            return subscriptionRevenue + rentalRevenue + penaltyRevenue;
+            return subscriptionRevenue + rentalRevenue + extraServiceRevenue + penaltyRevenue;
         }
 
         public double getProfit() {

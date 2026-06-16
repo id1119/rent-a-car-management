@@ -67,7 +67,7 @@ public class App {
         pricings = pricingRepository.loadAll();
         agents = agentRepository.loadAll();
         administrators = administratorRepository.loadAll();
-        reservations = reservationRepository.loadAll(clients, vehicleModels, vehicles);
+        reservations = reservationRepository.loadAll(clients, vehicleModels, vehicles, agents);
         vehicleRentals = vehicleRentalRepository.loadAll(vehicles, reservations, agents);
 
         clientService = new ClientService();

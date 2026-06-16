@@ -13,13 +13,23 @@ public class Reservation {
     private LocalDate startDate;
     private LocalDate endDate;
     private double price;
+    private double rentalBasePrice;
+    private double reservationExtraServicesPrice;
+    private double issueExtraServicesPrice;
     private Vehicle assignedVehicle = null;
     private List<ExtraService> extraServices = new ArrayList<ExtraService>();
     private LocalDateTime cancellationTime;
     private LocalDateTime createdAt;
+    private Agent processedByAgent;
 
 
     public Reservation(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
+        this(id, client, vehicleModel, startDate, endDate, price, price, 0, 0, extraServices);
+    }
+
+    public Reservation(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate,
+                       double price, double rentalBasePrice, double reservationExtraServicesPrice,
+                       double issueExtraServicesPrice, List<ExtraService> extraServices) {
         this.id = id;
         this.reservationStatus = ReservationStatus.PENDING;
         this.client = client;
@@ -27,6 +37,9 @@ public class Reservation {
         this.startDate = startDate;
         this.endDate = endDate;
         this.price = price;
+        this.rentalBasePrice = rentalBasePrice;
+        this.reservationExtraServicesPrice = reservationExtraServicesPrice;
+        this.issueExtraServicesPrice = issueExtraServicesPrice;
         this.createdAt = LocalDateTime.now();
         if (extraServices != null) {
             this.extraServices = extraServices;
@@ -89,6 +102,34 @@ public class Reservation {
         this.price = price;
     }
 
+    public double getRentalBasePrice() {
+        return rentalBasePrice;
+    }
+
+    public void setRentalBasePrice(double rentalBasePrice) {
+        this.rentalBasePrice = rentalBasePrice;
+    }
+
+    public double getReservationExtraServicesPrice() {
+        return reservationExtraServicesPrice;
+    }
+
+    public void setReservationExtraServicesPrice(double reservationExtraServicesPrice) {
+        this.reservationExtraServicesPrice = reservationExtraServicesPrice;
+    }
+
+    public double getIssueExtraServicesPrice() {
+        return issueExtraServicesPrice;
+    }
+
+    public void setIssueExtraServicesPrice(double issueExtraServicesPrice) {
+        this.issueExtraServicesPrice = issueExtraServicesPrice;
+    }
+
+    public double getTotalExtraServicesPrice() {
+        return reservationExtraServicesPrice + issueExtraServicesPrice;
+    }
+
     public Vehicle getAssignedVehicle() {
         return assignedVehicle;
     }
@@ -137,5 +178,13 @@ public class Reservation {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Agent getProcessedByAgent() {
+        return processedByAgent;
+    }
+
+    public void setProcessedByAgent(Agent processedByAgent) {
+        this.processedByAgent = processedByAgent;
     }
 }

@@ -596,7 +596,9 @@ public class ClientMainFrame extends JFrame {
             return;
         }
 
-        double price = app.getPricingService().calculateReservationPrice(selectedModel, client.getClientCategory(), startDate, endDate, extraServices);
+        double rentalBasePrice = app.getPricingService().calculateRentalBasePrice(selectedModel, client.getClientCategory(), startDate, endDate);
+        double reservationExtraServicesPrice = app.getPricingService().calculateExtraServicesPrice(extraServices, startDate, endDate, startDate);
+        double price = rentalBasePrice + reservationExtraServicesPrice;
         if (price <= 0) {
             JOptionPane.showMessageDialog(this, "No valid pricing found for selected date.");
             return;
@@ -609,6 +611,8 @@ public class ClientMainFrame extends JFrame {
                 startDate,
                 endDate,
                 price,
+                rentalBasePrice,
+                reservationExtraServicesPrice,
                 extraServices
         );
 

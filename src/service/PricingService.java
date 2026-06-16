@@ -118,21 +118,31 @@ public class PricingService {
             return 0;
         }
 
+        return calculateRentalBasePrice(vehicleModel, clientCategory, startDate, endDate) +
+                calculateExtraServicesPrice(extraServices, startDate, endDate, startDate);
+    }
+
+    public double calculateRentalBasePrice(VehicleModel vehicleModel, ClientCategory clientCategory, LocalDate startDate, LocalDate endDate) {
+        if (vehicleModel == null || startDate == null || endDate == null || endDate.isBefore(startDate)) {
+            return 0;
+        }
+
         long numberOfDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
         double dailyPrice = getDailyPrice(vehicleModel.getVehicleCategory(), startDate);
         double rentalPrice = dailyPrice * numberOfDays;
 
         double discount = getClientDiscount(clientCategory, startDate);
-        rentalPrice = rentalPrice * (1 - discount);
+        return rentalPrice * (1 - discount);
+    }
 
+    public double calculateExtraServicesPrice(List<ExtraService> extraServices, LocalDate startDate, LocalDate endDate, LocalDate pricingDate) {
         double extraServicesPrice = 0;
         if (extraServices != null) {
             for (ExtraService extraService : extraServices) {
-                extraServicesPrice += calculateExtraServiceCharge(extraService, startDate, endDate, startDate);
+                extraServicesPrice += calculateExtraServiceCharge(extraService, startDate, endDate, pricingDate);
             }
         }
-
-        return rentalPrice + extraServicesPrice;
+        return extraServicesPrice;
     }
 
     public double calculateExtraServiceCharge(ExtraService extraService, LocalDate startDate, LocalDate endDate, LocalDate pricingDate) {

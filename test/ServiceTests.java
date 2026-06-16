@@ -69,6 +69,8 @@ public class ServiceTests {
         runTest("SubscriptionService rejects early duplicate renewal request", ServiceTests::testSubscriptionRejectsEarlyRenewalRequest);
         runTest("SubscriptionService returns clear renewal errors", ServiceTests::testSubscriptionRenewalErrorMessages);
         runTest("ReportService aggregates revenue by client category", ServiceTests::testReportRevenueByClientCategory);
+        runTest("ReportService chart revenue includes uncategorized and total", ServiceTests::testReportRevenueChartIncludesUncategorizedAndTotal);
+        runTest("ReportService counts processed reservations by agent", ServiceTests::testReportCountsProcessedReservationsByAgent);
         runTest("ReportService calculates financial report", ServiceTests::testReportFinancialReport);
         runTest("Client can rent only with license older than two years", ServiceTests::testClientCanRentRequiresOldEnoughLicense);
 
@@ -590,6 +592,55 @@ public class ServiceTests {
         assertDoubleEquals(0.0, revenue.get(ClientCategory.PENSIONER));
     }
 
+    private static void testReportRevenueChartIncludesUncategorizedAndTotal() {
+        PricingService pricingService = new PricingService();
+        pricingService.addPricing(createPricing());
+
+        VehicleService vehicleService = new VehicleService();
+        ReservationService reservationService = new ReservationService(vehicleService);
+        VehicleRentalService vehicleRentalService = new VehicleRentalService();
+
+        Client student = createClient(1, ClientCategory.STUDENT, 0);
+        Client regular = createClient(2, null, 0);
+        VehicleModel model = new VehicleModel(1, "Toyota", "Corolla", VehicleCategory.STANDARD);
+
+        Reservation studentReservation = new Reservation(1, student, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 500, 450, 50, 0, new ArrayList<>());
+        studentReservation.setReservationStatus(ReservationStatus.APPROVED);
+        reservationService.addReservation(studentReservation);
+
+        Reservation regularReservation = new Reservation(2, regular, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 700, 650, 50, 0, new ArrayList<>());
+        regularReservation.setReservationStatus(ReservationStatus.APPROVED);
+        reservationService.addReservation(regularReservation);
+
+        ReportService reportService = new ReportService(Arrays.asList(student, regular), new ArrayList<>(), new ArrayList<>(), Arrays.asList(model), reservationService, vehicleRentalService, pricingService);
+        Map<String, Double> revenue = reportService.getRevenueByClientCategoryChartData(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31));
+
+        assertDoubleEquals(1500.0, revenue.get("STUDENT"));
+        assertDoubleEquals(1700.0, revenue.get("NO_CATEGORY"));
+        assertDoubleEquals(3200.0, revenue.get("TOTAL"));
+    }
+
+    private static void testReportCountsProcessedReservationsByAgent() {
+        PricingService pricingService = new PricingService();
+        VehicleService vehicleService = new VehicleService();
+        ReservationService reservationService = new ReservationService(vehicleService);
+        VehicleRentalService vehicleRentalService = new VehicleRentalService();
+
+        Agent agent = new Agent(1, "Agent", "One", "M", LocalDate.of(1990, 1, 1), "060", "Address", "agent", "pass", LevelOfEducation.HIGH, 3);
+        Client client = createClient(1, ClientCategory.STUDENT, 0);
+        VehicleModel model = new VehicleModel(1, "Toyota", "Corolla", VehicleCategory.STANDARD);
+
+        Reservation reservation = new Reservation(1, client, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 500, new ArrayList<>());
+        reservation.setReservationStatus(ReservationStatus.APPROVED);
+        reservation.setProcessedByAgent(agent);
+        reservationService.addReservation(reservation);
+
+        ReportService reportService = new ReportService(Arrays.asList(client), Arrays.asList(agent), new ArrayList<>(), Arrays.asList(model), reservationService, vehicleRentalService, pricingService);
+        Map<String, Integer> processed = reportService.countProcessedReservationsByAgent(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+
+        assertEquals(1, processed.get("1 - Agent One"));
+    }
+
     private static void testReportFinancialReport() {
         PricingService pricingService = new PricingService();
         pricingService.addPricing(createPricing());
@@ -602,7 +653,7 @@ public class ServiceTests {
         client.getSubscription().setExpirationDate(LocalDate.of(2027, 7, 1));
 
         VehicleModel model = new VehicleModel(1, "Toyota", "Corolla", VehicleCategory.STANDARD);
-        Reservation approvedReservation = new Reservation(1, client, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 500, new ArrayList<>());
+        Reservation approvedReservation = new Reservation(1, client, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 500, 420, 80, 40, new ArrayList<>());
         approvedReservation.setReservationStatus(ReservationStatus.APPROVED);
         reservationService.addReservation(approvedReservation);
 
@@ -626,11 +677,12 @@ public class ServiceTests {
         ReportService.FinancialReport report = reportService.getFinancialReport(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31));
 
         assertDoubleEquals(1000.0, report.getSubscriptionRevenue());
-        assertDoubleEquals(500.0, report.getRentalRevenue());
+        assertDoubleEquals(420.0, report.getRentalRevenue());
+        assertDoubleEquals(120.0, report.getExtraServiceRevenue());
         assertDoubleEquals(3000.0, report.getPenaltyRevenue());
-        assertDoubleEquals(4500.0, report.getTotalRevenue());
+        assertDoubleEquals(4540.0, report.getTotalRevenue());
         assertDoubleEquals(100000.0, report.getSalaryExpenses());
-        assertDoubleEquals(-95500.0, report.getProfit());
+        assertDoubleEquals(-95460.0, report.getProfit());
     }
 
     private static void testClientCanRentRequiresOldEnoughLicense() {

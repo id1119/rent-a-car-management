@@ -2,6 +2,7 @@ package service;
 
 import model.Client;
 import model.ExtraService;
+import model.Agent;
 import model.Reservation;
 import model.ReservationStatus;
 import model.Vehicle;
@@ -160,16 +161,26 @@ public class ReservationService {
     }
 
     public Reservation createReservationRequest(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
+        return createReservationRequest(id, client, vehicleModel, startDate, endDate, price, price, 0, extraServices);
+    }
+
+    public Reservation createReservationRequest(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate,
+                                                double price, double rentalBasePrice, double reservationExtraServicesPrice,
+                                                List<ExtraService> extraServices) {
         if (!canCreateReservation(client, vehicleModel, startDate, endDate)) {
             return null;
         }
 
-        Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, extraServices);
+        Reservation reservation = new Reservation(id, client, vehicleModel, startDate, endDate, price, rentalBasePrice, reservationExtraServicesPrice, 0, extraServices);
         addReservation(reservation);
         return reservation;
     }
 
     public boolean approveReservation(Reservation reservation) {
+        return approveReservation(reservation, null);
+    }
+
+    public boolean approveReservation(Reservation reservation, Agent agent) {
         if (reservation == null || reservation.getReservationStatus() != ReservationStatus.PENDING) {
             return false;
         }
@@ -179,15 +190,21 @@ public class ReservationService {
         }
 
         reservation.setReservationStatus(ReservationStatus.APPROVED);
+        reservation.setProcessedByAgent(agent);
         return true;
     }
 
     public boolean rejectReservation(Reservation reservation) {
+        return rejectReservation(reservation, null);
+    }
+
+    public boolean rejectReservation(Reservation reservation, Agent agent) {
         if (reservation == null || reservation.getReservationStatus() != ReservationStatus.PENDING) {
             return false;
         }
 
         reservation.setReservationStatus(ReservationStatus.REJECTED);
+        reservation.setProcessedByAgent(agent);
         return true;
     }
 
@@ -214,6 +231,10 @@ public class ReservationService {
     }
 
     public boolean cancelReservationByStaff(Reservation reservation) {
+        return cancelReservationByStaff(reservation, null);
+    }
+
+    public boolean cancelReservationByStaff(Reservation reservation, Agent agent) {
         String error = getReservationCancellationError(reservation);
         if (error != null) {
             return false;
@@ -221,10 +242,15 @@ public class ReservationService {
 
         reservation.setReservationStatus(ReservationStatus.CANCELED);
         reservation.setCancellationTime(LocalDateTime.now());
+        reservation.setProcessedByAgent(agent);
         return true;
     }
 
     public boolean markNoShow(Reservation reservation) {
+        return markNoShow(reservation, null);
+    }
+
+    public boolean markNoShow(Reservation reservation, Agent agent) {
         String error = getNoShowError(reservation);
         if (error != null) {
             return false;
@@ -234,6 +260,7 @@ public class ReservationService {
         reservation.setReservationStatus(ReservationStatus.CANCELED);
         reservation.setCancellationTime(cancellationTime);
         reservation.getClient().setReservationBlockedUntil(cancellationTime.plusHours(24));
+        reservation.setProcessedByAgent(agent);
         return true;
     }
 
