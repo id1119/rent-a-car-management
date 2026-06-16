@@ -19,3 +19,15 @@ id;manufacturer;model;vehicleCategory
 18;Audi;A6;LUXURY
 19;Volvo;XC60;LUXURY
 20;Mercedes-Benz;E-Class;LUXURY
+21;Skoda;Fabia;ECONOMY
+22;Hyundai;i20;ECONOMY
+23;Kia;Rio;ECONOMY
+24;Toyota;Corolla;STANDARD
+25;Mazda;3;STANDARD
+26;Hyundai;Tucson;STANDARD
+27;Volkswagen;Touran;FAMILY
+28;Peugeot;5008;FAMILY
+29;Citroen;C5 Aircross;FAMILY
+30;Lexus;ES;LUXURY
+31;Tesla;Model 3;LUXURY
+32;Audi;Q7;LUXURY

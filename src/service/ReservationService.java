@@ -191,6 +191,7 @@ public class ReservationService {
 
         reservation.setReservationStatus(ReservationStatus.APPROVED);
         reservation.setProcessedByAgent(agent);
+        reservation.setProcessedAt(LocalDateTime.now());
         return true;
     }
 
@@ -205,6 +206,7 @@ public class ReservationService {
 
         reservation.setReservationStatus(ReservationStatus.REJECTED);
         reservation.setProcessedByAgent(agent);
+        reservation.setProcessedAt(LocalDateTime.now());
         return true;
     }
 
@@ -243,6 +245,7 @@ public class ReservationService {
         reservation.setReservationStatus(ReservationStatus.CANCELED);
         reservation.setCancellationTime(LocalDateTime.now());
         reservation.setProcessedByAgent(agent);
+        reservation.setProcessedAt(LocalDateTime.now());
         return true;
     }
 
@@ -261,6 +264,7 @@ public class ReservationService {
         reservation.setCancellationTime(cancellationTime);
         reservation.getClient().setReservationBlockedUntil(cancellationTime.plusHours(24));
         reservation.setProcessedByAgent(agent);
+        reservation.setProcessedAt(cancellationTime);
         return true;
     }
 

@@ -11,8 +11,12 @@ import model.VehicleModel;
 import model.VehicleRental;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +64,7 @@ public class ReportService {
 
         for (Reservation reservation : reservationService.getReservations()) {
             Agent processedByAgent = reservation.getProcessedByAgent();
-            LocalDate processedDate = reservation.getCreatedAt() == null ? reservation.getStartDate() : reservation.getCreatedAt().toLocalDate();
+            LocalDate processedDate = reservation.getProcessedAt() == null ? null : reservation.getProcessedAt().toLocalDate();
             if (processedByAgent == null || !isDateInRange(processedDate, startDate, endDate)) {
                 continue;
             }
@@ -240,6 +244,45 @@ public class ReportService {
         return result;
     }
 
+    public Map<String, LinkedHashMap<String, Double>> getMonthlyRevenueByClientCategory(LocalDate endDate) {
+        LinkedHashMap<YearMonth, String> months = createLastTwelveMonthLabels(endDate);
+        Map<String, LinkedHashMap<String, Double>> result = new LinkedHashMap<>();
+        result.put("Student", createEmptyMonthSeries(months));
+        result.put("Penzioner", createEmptyMonthSeries(months));
+        result.put("Firma", createEmptyMonthSeries(months));
+        result.put("Bez kategorije", createEmptyMonthSeries(months));
+        result.put("Ukupno", createEmptyMonthSeries(months));
+
+        for (Client client : clients) {
+            if (client.getSubscription() == null) {
+                continue;
+            }
+
+            LocalDate subscriptionStartDate = client.getSubscription().getExpirationDate().minusYears(1);
+            Pricing pricing = pricingService.findValidPricing(subscriptionStartDate);
+            if (pricing != null) {
+                addMonthlyRevenue(result, months, getClientCategoryLabel(client), subscriptionStartDate, pricing.getAnnualSubscription());
+            }
+        }
+
+        for (Reservation reservation : reservationService.getReservations()) {
+            if (reservation.getReservationStatus() != ReservationStatus.APPROVED) {
+                continue;
+            }
+            addMonthlyRevenue(result, months, getClientCategoryLabel(reservation.getClient()), reservation.getStartDate(), reservation.getPrice());
+        }
+
+        for (VehicleRental rental : vehicleRentalService.getVehicleRentals()) {
+            if (rental.getPenaltyForBeingLate() <= 0 || rental.getReservation() == null) {
+                continue;
+            }
+            LocalDate penaltyDate = rental.getActualEndRentDate() == null ? rental.getEndRentDate() : rental.getActualEndRentDate();
+            addMonthlyRevenue(result, months, getClientCategoryLabel(rental.getReservation().getClient()), penaltyDate, rental.getPenaltyForBeingLate());
+        }
+
+        return result;
+    }
+
     private boolean isDateInRange(LocalDate date, LocalDate startDate, LocalDate endDate) {
         if (date == null || startDate == null || endDate == null) {
             return false;
@@ -256,6 +299,69 @@ public class ReportService {
             return "NO_CATEGORY";
         }
         return client.getClientCategory().name();
+    }
+
+    private String getClientCategoryLabel(Client client) {
+        if (client == null || client.getClientCategory() == null) {
+            return "Bez kategorije";
+        }
+        if (client.getClientCategory() == ClientCategory.STUDENT) {
+            return "Student";
+        }
+        if (client.getClientCategory() == ClientCategory.PENSIONER) {
+            return "Penzioner";
+        }
+        if (client.getClientCategory() == ClientCategory.COMPANY) {
+            return "Firma";
+        }
+        return client.getClientCategory().name();
+    }
+
+    private LinkedHashMap<YearMonth, String> createLastTwelveMonthLabels(LocalDate endDate) {
+        LocalDate safeEndDate = endDate == null ? LocalDate.now() : endDate;
+        YearMonth endMonth = YearMonth.from(safeEndDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("sr-Latn-RS"));
+        LinkedHashMap<YearMonth, String> months = new LinkedHashMap<>();
+        List<YearMonth> orderedMonths = new ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            orderedMonths.add(endMonth.minusMonths(i));
+        }
+        for (YearMonth month : orderedMonths) {
+            months.put(month, formatter.format(month));
+        }
+        return months;
+    }
+
+    private LinkedHashMap<String, Double> createEmptyMonthSeries(LinkedHashMap<YearMonth, String> months) {
+        LinkedHashMap<String, Double> series = new LinkedHashMap<>();
+        for (String label : months.values()) {
+            series.put(label, 0.0);
+        }
+        return series;
+    }
+
+    private void addMonthlyRevenue(Map<String, LinkedHashMap<String, Double>> result,
+                                   LinkedHashMap<YearMonth, String> months,
+                                   String category,
+                                   LocalDate date,
+                                   double amount) {
+        if (date == null || amount <= 0) {
+            return;
+        }
+
+        String monthLabel = months.get(YearMonth.from(date));
+        if (monthLabel == null) {
+            return;
+        }
+
+        LinkedHashMap<String, Double> categorySeries = result.get(category);
+        if (categorySeries == null) {
+            categorySeries = result.get("Bez kategorije");
+        }
+
+        categorySeries.put(monthLabel, categorySeries.get(monthLabel) + amount);
+        LinkedHashMap<String, Double> totalSeries = result.get("Ukupno");
+        totalSeries.put(monthLabel, totalSeries.get(monthLabel) + amount);
     }
 
     public static class ModelReport {

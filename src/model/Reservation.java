@@ -21,6 +21,7 @@ public class Reservation {
     private LocalDateTime cancellationTime;
     private LocalDateTime createdAt;
     private Agent processedByAgent;
+    private LocalDateTime processedAt;
 
 
     public Reservation(int id, Client client, VehicleModel vehicleModel, LocalDate startDate, LocalDate endDate, double price, List<ExtraService> extraServices) {
@@ -186,5 +187,13 @@ public class Reservation {
 
     public void setProcessedByAgent(Agent processedByAgent) {
         this.processedByAgent = processedByAgent;
+    }
+
+    public LocalDateTime getProcessedAt() {
+        return processedAt;
+    }
+
+    public void setProcessedAt(LocalDateTime processedAt) {
+        this.processedAt = processedAt;
     }
 }

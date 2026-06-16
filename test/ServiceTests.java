@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -171,7 +172,7 @@ public class ServiceTests {
 
         assertEquals(UserRole.ADMINISTRATOR, app.getAuthService().login("admin", "admin").getRole());
         assertEquals(UserRole.AGENT, app.getAuthService().login("agent", "agent").getRole());
-        assertEquals(UserRole.CLIENT, app.getAuthService().login("client", "client").getRole());
+        assertEquals(UserRole.CLIENT, app.getAuthService().login("marko.markovic@example.com", "client").getRole());
     }
 
     private static void testAuthServiceAuthenticatesAllUserRoles() {
@@ -633,6 +634,7 @@ public class ServiceTests {
         Reservation reservation = new Reservation(1, client, model, LocalDate.of(2026, 7, 10), LocalDate.of(2026, 7, 12), 500, new ArrayList<>());
         reservation.setReservationStatus(ReservationStatus.APPROVED);
         reservation.setProcessedByAgent(agent);
+        reservation.setProcessedAt(LocalDateTime.now());
         reservationService.addReservation(reservation);
 
         ReportService reportService = new ReportService(Arrays.asList(client), Arrays.asList(agent), new ArrayList<>(), Arrays.asList(model), reservationService, vehicleRentalService, pricingService);

@@ -3,4 +3,9 @@ id;name;lastName;gender;birthday;phoneNumber;address;userName;password;levelOfEd
 102;Tamara;Milosevic;F;1995-08-22;+381642020202;Bulevar Kralja Aleksandra 88 Beograd;tamara.milosevic@rentacar.rs;agent102;COLLEGE;5
 103;Vladimir;Ristic;M;1988-12-09;+381643030303;Kralja Petra 31 Nis;vladimir.ristic@rentacar.rs;agent103;HIGH;10
 104;Sara;Popovic;F;1999-05-17;+381644040404;Zmaj Jovina 9 Subotica;sara.popovic@rentacar.rs;agent104;MIDDLE;2
-105;Luka;Djordjevic;M;1993-10-02;+381645050505;Bulevar Evrope 44 Novi Sad;luka.djordjevic@rentacar.rs;agent105;COLLEGE;6
+105;Luka;Djordjevic;M;1993-10-02;+381645050505;Bulevar Evrope 44 Novi Sad;luka.djordjevic@rentacar.rs;agent105;MIDDLE;6
+106;Marija;Radovic;F;1993-04-19;+38164106106;Bulevar Oslobodjenja 66 Novi Sad;marija.radovic@rentacar.rs;agent106;COLLEGE;6
+107;Dusan;Jankovic;M;1988-10-07;+38164107107;Kralja Milana 12 Beograd;dusan.jankovic@rentacar.rs;agent107;HIGH;11
+108;Milena;Simic;F;1997-02-23;+38164108108;Cara Dusana 9 Nis;milena.simic@rentacar.rs;agent108;COLLEGE;4
+109;Bojan;Matic;M;1990-12-03;+38164109109;Zmaj Jovina 31 Subotica;bojan.matic@rentacar.rs;agent109;COLLEGE;8
+110;Ivana;Vasic;F;1996-07-15;+38164110110;Nemanjina 44 Kragujevac;ivana.vasic@rentacar.rs;agent110;HIGH;5

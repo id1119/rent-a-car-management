@@ -34,7 +34,7 @@ public class ReservationRepository {
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";", -1);
-                if (parts.length != 11 && parts.length != 15) {
+                if (parts.length != 11 && parts.length != 15 && parts.length != 16) {
                     continue;
                 }
 
@@ -54,13 +54,21 @@ public class ReservationRepository {
                     double reservationExtraServicesPrice = 0;
                     double issueExtraServicesPrice = 0;
                     Agent processedByAgent = null;
-                    if (parts.length == 15) {
+                    LocalDateTime processedAt = null;
+                    if (parts.length >= 15) {
                         rentalBasePrice = parseOptionalDouble(parts[11], price);
                         reservationExtraServicesPrice = parseOptionalDouble(parts[12], 0);
                         issueExtraServicesPrice = parseOptionalDouble(parts[13], 0);
-                        Integer processedByAgentId = parseOptionalInteger(parts[14]);
+                        int processedByAgentIndex = parts.length == 16 ? 15 : 14;
+                        if (parts.length == 16) {
+                            processedAt = parseOptionalDateTime(parts[14]);
+                        }
+                        Integer processedByAgentId = parseOptionalInteger(parts[processedByAgentIndex]);
                         if (processedByAgentId != null) {
                             processedByAgent = findAgentById(agents, processedByAgentId);
+                        }
+                        if (parts.length == 15 && processedByAgent != null) {
+                            processedAt = createdAt;
                         }
                     }
 
@@ -81,6 +89,7 @@ public class ReservationRepository {
                     reservation.setCancellationTime(cancellationTime);
                     reservation.setCreatedAt(createdAt);
                     reservation.setProcessedByAgent(processedByAgent);
+                    reservation.setProcessedAt(processedAt);
 
                     reservations.add(reservation);
                 } catch (RuntimeException e) {
@@ -100,7 +109,7 @@ public class ReservationRepository {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            writer.write("id;reservationStatus;clientId;vehicleModelId;startDate;endDate;price;assignedVehicleId;extraServices;cancellationTime;createdAt;rentalBasePrice;reservationExtraServicesPrice;issueExtraServicesPrice;processedByAgentId");
+            writer.write("id;reservationStatus;clientId;vehicleModelId;startDate;endDate;price;assignedVehicleId;extraServices;cancellationTime;createdAt;rentalBasePrice;reservationExtraServicesPrice;issueExtraServicesPrice;processedAt;processedByAgentId");
             writer.newLine();
 
             for (Reservation reservation : reservations) {
@@ -117,6 +126,11 @@ public class ReservationRepository {
                 String createdAt = "";
                 if (reservation.getCreatedAt() != null) {
                     createdAt = reservation.getCreatedAt().toString();
+                }
+
+                String processedAt = "";
+                if (reservation.getProcessedAt() != null) {
+                    processedAt = reservation.getProcessedAt().toString();
                 }
 
                 String processedByAgentId = "";
@@ -139,6 +153,7 @@ public class ReservationRepository {
                         String.valueOf(reservation.getRentalBasePrice()),
                         String.valueOf(reservation.getReservationExtraServicesPrice()),
                         String.valueOf(reservation.getIssueExtraServicesPrice()),
+                        processedAt,
                         processedByAgentId
                 );
 

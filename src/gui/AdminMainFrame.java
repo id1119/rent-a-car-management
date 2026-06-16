@@ -63,9 +63,7 @@ public class AdminMainFrame extends JFrame {
     private JLabel operationsApprovedCountLabel;
     private JLabel operationsActiveRentalsCountLabel;
     private JLabel operationsReturnedRentalsCountLabel;
-    private SimpleChartPanel revenueByClientCategoryChart;
-    private SimpleChartPanel agentWorkloadChart;
-    private SimpleChartPanel reservationStatusesChart;
+    private XChartDashboardPanel chartDashboardPanel;
 
     public AdminMainFrame(App app, Administrator administrator) {
         this.app = app;
@@ -995,22 +993,9 @@ public class AdminMainFrame extends JFrame {
     }
 
     private JPanel createChartsPanel() {
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(GuiTheme.BACKGROUND);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        chartDashboardPanel = new XChartDashboardPanel();
 
-        revenueByClientCategoryChart = new SimpleChartPanel("Revenue by client category - last 12 months");
-        agentWorkloadChart = new SimpleChartPanel("Agent workload - last 30 days");
-        reservationStatusesChart = new SimpleChartPanel("Reservation statuses - last 30 days", SimpleChartPanel.ChartType.PIE);
-
-        contentPanel.add(wrapChartPanel(revenueByClientCategoryChart));
-        contentPanel.add(Box.createVerticalStrut(14));
-        contentPanel.add(wrapChartPanel(agentWorkloadChart));
-        contentPanel.add(Box.createVerticalStrut(14));
-        contentPanel.add(wrapChartPanel(reservationStatusesChart));
-
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        JScrollPane scrollPane = new JScrollPane(chartDashboardPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -1092,17 +1077,18 @@ public class AdminMainFrame extends JFrame {
     }
 
     private void refreshCharts() {
-        if (revenueByClientCategoryChart == null || agentWorkloadChart == null || reservationStatusesChart == null) {
+        if (chartDashboardPanel == null) {
             return;
         }
 
         LocalDate today = LocalDate.now();
-        LocalDate twelveMonthsAgo = today.minusMonths(12).plusDays(1);
         LocalDate thirtyDaysAgo = today.minusDays(29);
 
-        revenueByClientCategoryChart.setData(app.getReportService().getRevenueByClientCategoryChartData(twelveMonthsAgo, today));
-        agentWorkloadChart.setData(toDoubleMap(app.getReportService().countProcessedReservationsByAgent(thirtyDaysAgo, today)));
-        reservationStatusesChart.setData(toStringDoubleMap(app.getReportService().countReservationsByStatus(thirtyDaysAgo, today)));
+        chartDashboardPanel.updateCharts(
+                app.getReportService().getMonthlyRevenueByClientCategory(today),
+                app.getReportService().countProcessedReservationsByAgent(thirtyDaysAgo, today),
+                toStringIntegerMap(app.getReportService().countReservationsByStatus(thirtyDaysAgo, today))
+        );
     }
 
     private Map<String, Double> toDoubleMap(Map<String, Integer> source) {
@@ -1122,11 +1108,13 @@ public class AdminMainFrame extends JFrame {
         return result;
     }
 
-    private JPanel wrapChartPanel(SimpleChartPanel chartPanel) {
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBackground(GuiTheme.BACKGROUND);
-        wrapper.add(chartPanel, BorderLayout.CENTER);
-        return wrapper;
+    private Map<String, Integer> toStringIntegerMap(Map<?, Integer> source) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Map.Entry<?, Integer> entry : source.entrySet()) {
+            Integer value = entry.getValue();
+            result.put(String.valueOf(entry.getKey()), value == null ? 0 : value);
+        }
+        return result;
     }
 
     private void refreshAgentsTable() {
