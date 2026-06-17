@@ -11,6 +11,7 @@ import model.Subscription;
 import model.SubscriptionStatus;
 import model.User;
 import model.Vehicle;
+import model.VehicleCategory;
 import model.VehicleModel;
 import model.VehicleRental;
 
@@ -46,7 +47,10 @@ public class AgentMainFrame extends JFrame {
     private JLabel returnsTodayCountLabel;
     private DefaultTableModel dailyReservationsTableModel;
     private DefaultTableModel dailyRentalsTableModel;
-    private JTextField vehicleAvailabilitySearchField;
+    private JTextField vehicleAvailabilityRegistrationField;
+    private JTextField vehicleAvailabilityManufacturerField;
+    private JTextField vehicleAvailabilityModelField;
+    private JComboBox<String> vehicleAvailabilityCategoryComboBox;
     private JTextField vehicleAvailabilityStartDateField;
     private JTextField vehicleAvailabilityEndDateField;
     private DefaultTableModel vehicleAvailabilityTableModel;
@@ -149,24 +153,37 @@ public class AgentMainFrame extends JFrame {
         JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
         titlePanel.setOpaque(false);
         titlePanel.add(GuiTheme.createSectionLabel("Vehicles and availability"));
-        JLabel hintLabel = new JLabel("Filter vehicles by registration, manufacturer or model. Dates are optional.");
+        JLabel hintLabel = new JLabel("Filter by registration, manufacturer, model, category and availability date range.");
         hintLabel.setForeground(GuiTheme.MUTED_TEXT);
         titlePanel.add(hintLabel);
         topPanel.add(titlePanel, BorderLayout.WEST);
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
         filterPanel.setOpaque(false);
-        vehicleAvailabilitySearchField = createTextField();
+        vehicleAvailabilityRegistrationField = createTextField();
+        vehicleAvailabilityManufacturerField = createTextField();
+        vehicleAvailabilityModelField = createTextField();
+        vehicleAvailabilityCategoryComboBox = new JComboBox<>();
+        vehicleAvailabilityCategoryComboBox.addItem("ANY");
+        for (VehicleCategory category : VehicleCategory.values()) {
+            vehicleAvailabilityCategoryComboBox.addItem(category.name());
+        }
         vehicleAvailabilityStartDateField = createTextField();
         vehicleAvailabilityEndDateField = createTextField();
         JButton refreshButton = GuiTheme.createPrimaryButton("Refresh");
         refreshButton.addActionListener(e -> refreshVehicleAvailabilityTable());
 
-        filterPanel.add(new JLabel("Search:"));
-        filterPanel.add(vehicleAvailabilitySearchField);
-        filterPanel.add(new JLabel("Start:"));
+        filterPanel.add(new JLabel("Registration:"));
+        filterPanel.add(vehicleAvailabilityRegistrationField);
+        filterPanel.add(new JLabel("Manufacturer:"));
+        filterPanel.add(vehicleAvailabilityManufacturerField);
+        filterPanel.add(new JLabel("Model:"));
+        filterPanel.add(vehicleAvailabilityModelField);
+        filterPanel.add(new JLabel("Category:"));
+        filterPanel.add(vehicleAvailabilityCategoryComboBox);
+        filterPanel.add(new JLabel("Available from:"));
         filterPanel.add(vehicleAvailabilityStartDateField);
-        filterPanel.add(new JLabel("End:"));
+        filterPanel.add(new JLabel("Available to:"));
         filterPanel.add(vehicleAvailabilityEndDateField);
         filterPanel.add(refreshButton);
         topPanel.add(filterPanel, BorderLayout.EAST);
@@ -324,7 +341,7 @@ public class AgentMainFrame extends JFrame {
 
         issueReservationComboBox = new JComboBox<>();
         issueReservationComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createReservationComboLabel(value, isSelected, list));
-        issueReservationComboBox.addActionListener(e -> refreshIssueVehicleComboBox());
+        issueReservationComboBox.addActionListener(e -> refreshIssueReservationDetails());
 
         issueVehicleComboBox = new JComboBox<>();
         issueVehicleComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createVehicleComboLabel(value, isSelected, list));
@@ -566,7 +583,12 @@ public class AgentMainFrame extends JFrame {
                 issueReservationComboBox.addItem(reservation);
             }
         }
+        refreshIssueReservationDetails();
+    }
+
+    private void refreshIssueReservationDetails() {
         refreshIssueVehicleComboBox();
+        refreshIssueExtraServiceSelection();
     }
 
     private void refreshIssueVehicleComboBox() {
@@ -585,6 +607,20 @@ public class AgentMainFrame extends JFrame {
         for (Vehicle vehicle : availableVehicles) {
             issueVehicleComboBox.addItem(vehicle);
         }
+    }
+
+    private void refreshIssueExtraServiceSelection() {
+        Reservation reservation = (Reservation) issueReservationComboBox.getSelectedItem();
+        if (reservation == null) {
+            clearIssueExtraServiceSelection();
+            return;
+        }
+
+        List<ExtraService> extraServices = reservation.getExtraServices();
+        issueGpsCheckBox.setSelected(extraServices.contains(ExtraService.GPS));
+        issueChildSeatCheckBox.setSelected(extraServices.contains(ExtraService.CHILD_SEAT));
+        issueInsuranceCheckBox.setSelected(extraServices.contains(ExtraService.ADDITIONAL_INSURANCE));
+        issueExtendedUseCheckBox.setSelected(extraServices.contains(ExtraService.EXTENDED_USE));
     }
 
     private void refreshVehicleAvailabilityTable() {
@@ -612,7 +648,10 @@ public class AgentMainFrame extends JFrame {
             }
         }
 
-        String search = vehicleAvailabilitySearchField.getText().trim().toLowerCase();
+        String registrationFilter = vehicleAvailabilityRegistrationField.getText().trim().toLowerCase();
+        String manufacturerFilter = vehicleAvailabilityManufacturerField.getText().trim().toLowerCase();
+        String modelFilter = vehicleAvailabilityModelField.getText().trim().toLowerCase();
+        String categoryFilter = (String) vehicleAvailabilityCategoryComboBox.getSelectedItem();
         vehicleAvailabilityTableModel.setRowCount(0);
 
         for (Vehicle vehicle : app.getVehicleService().getVehicles()) {
@@ -621,8 +660,19 @@ public class AgentMainFrame extends JFrame {
                 continue;
             }
 
-            String searchableText = (vehicle.getRegistration() + " " + vehicleModel.getManufacturer() + " " + vehicleModel.getModel()).toLowerCase();
-            if (!search.isEmpty() && !searchableText.contains(search)) {
+            if (!registrationFilter.isEmpty() && !vehicle.getRegistration().toLowerCase().contains(registrationFilter)) {
+                continue;
+            }
+
+            if (!manufacturerFilter.isEmpty() && !vehicleModel.getManufacturer().toLowerCase().contains(manufacturerFilter)) {
+                continue;
+            }
+
+            if (!modelFilter.isEmpty() && !vehicleModel.getModel().toLowerCase().contains(modelFilter)) {
+                continue;
+            }
+
+            if (categoryFilter != null && !categoryFilter.equals("ANY") && !vehicleModel.getVehicleCategory().name().equals(categoryFilter)) {
                 continue;
             }
 

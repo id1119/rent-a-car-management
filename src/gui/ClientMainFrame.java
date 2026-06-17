@@ -363,7 +363,7 @@ public class ClientMainFrame extends JFrame {
         titlePanel.setOpaque(false);
         titlePanel.add(GuiTheme.createSectionLabel("New reservation request"));
 
-        JLabel hintLabel = new JLabel("Choose a model, date range and optional extra services.");
+        JLabel hintLabel = new JLabel("Filter available models, choose date range and optional extra services.");
         hintLabel.setForeground(GuiTheme.MUTED_TEXT);
         titlePanel.add(hintLabel);
         panel.add(titlePanel, BorderLayout.NORTH);
@@ -374,10 +374,15 @@ public class ClientMainFrame extends JFrame {
         gbc.insets = new Insets(8, 0, 8, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JComboBox<VehicleModel> vehicleModelComboBox = new JComboBox<>();
-        for (VehicleModel vehicleModel : app.getVehicleModels()) {
-            vehicleModelComboBox.addItem(vehicleModel);
+        JTextField manufacturerFilterField = createTextField("");
+        JTextField modelFilterField = createTextField("");
+        JComboBox<String> categoryFilterComboBox = new JComboBox<>();
+        categoryFilterComboBox.addItem("ANY");
+        for (VehicleCategory category : VehicleCategory.values()) {
+            categoryFilterComboBox.addItem(category.name());
         }
+
+        JComboBox<VehicleModel> vehicleModelComboBox = new JComboBox<>();
         vehicleModelComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel();
             label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
@@ -392,8 +397,17 @@ public class ClientMainFrame extends JFrame {
             return label;
         });
 
-        JTextField startDateField = createTextField("2026-07-01");
-        JTextField endDateField = createTextField("2026-07-05");
+        JTextField startDateField = createTextField(LocalDate.now().plusDays(1).toString());
+        JTextField endDateField = createTextField(LocalDate.now().plusDays(3).toString());
+        JButton searchModelsButton = GuiTheme.createSecondaryButton("Search models");
+        searchModelsButton.addActionListener(e -> refreshReservationModelComboBox(
+                vehicleModelComboBox,
+                manufacturerFilterField,
+                modelFilterField,
+                categoryFilterComboBox,
+                startDateField,
+                endDateField
+        ));
 
         JCheckBox gpsCheckBox = new JCheckBox("GPS navigation");
         JCheckBox childSeatCheckBox = new JCheckBox("Child seat");
@@ -411,10 +425,14 @@ public class ClientMainFrame extends JFrame {
         extraServicesPanel.add(insuranceCheckBox);
         extraServicesPanel.add(extendedUseCheckBox);
 
-        addFormRow(formPanel, gbc, 0, "Vehicle model", vehicleModelComboBox);
-        addFormRow(formPanel, gbc, 1, "Start date", startDateField);
-        addFormRow(formPanel, gbc, 2, "End date", endDateField);
-        addFormRow(formPanel, gbc, 3, "Extra services", extraServicesPanel);
+        addFormRow(formPanel, gbc, 0, "Manufacturer", manufacturerFilterField);
+        addFormRow(formPanel, gbc, 1, "Model", modelFilterField);
+        addFormRow(formPanel, gbc, 2, "Category", categoryFilterComboBox);
+        addFormRow(formPanel, gbc, 3, "Start date", startDateField);
+        addFormRow(formPanel, gbc, 4, "End date", endDateField);
+        addFormRow(formPanel, gbc, 5, "Available model", vehicleModelComboBox);
+        addFormRow(formPanel, gbc, 6, "", searchModelsButton);
+        addFormRow(formPanel, gbc, 7, "Extra services", extraServicesPanel);
 
         panel.add(formPanel, BorderLayout.CENTER);
 
@@ -434,6 +452,14 @@ public class ClientMainFrame extends JFrame {
         buttonPanel.add(createButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
+        refreshReservationModelComboBox(
+                vehicleModelComboBox,
+                manufacturerFilterField,
+                modelFilterField,
+                categoryFilterComboBox,
+                startDateField,
+                endDateField
+        );
         return wrapWithMargin(panel);
     }
 
@@ -492,6 +518,71 @@ public class ClientMainFrame extends JFrame {
                     vehicleModel.getVehicleCategory()
             });
         }
+    }
+
+    private void refreshReservationModelComboBox(JComboBox<VehicleModel> vehicleModelComboBox,
+                                                 JTextField manufacturerField,
+                                                 JTextField modelField,
+                                                 JComboBox<String> categoryComboBox,
+                                                 JTextField startDateField,
+                                                 JTextField endDateField) {
+        LocalDate startDate;
+        LocalDate endDate;
+
+        try {
+            startDate = LocalDate.parse(startDateField.getText().trim());
+            endDate = LocalDate.parse(endDateField.getText().trim());
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Dates must use yyyy-mm-dd format.");
+            return;
+        }
+
+        if (endDate.isBefore(startDate)) {
+            JOptionPane.showMessageDialog(this, "End date cannot be before start date.");
+            return;
+        }
+
+        String manufacturerFilter = manufacturerField.getText().trim().toLowerCase();
+        String modelFilter = modelField.getText().trim().toLowerCase();
+        String categoryFilter = (String) categoryComboBox.getSelectedItem();
+
+        vehicleModelComboBox.removeAllItems();
+        for (VehicleModel vehicleModel : app.getVehicleModels()) {
+            if (!matchesReservationModelFilter(vehicleModel, manufacturerFilter, modelFilter, categoryFilter)) {
+                continue;
+            }
+
+            if (!app.getReservationService().hasAvailableVehicle(vehicleModel, startDate, endDate)) {
+                continue;
+            }
+
+            vehicleModelComboBox.addItem(vehicleModel);
+        }
+
+        if (vehicleModelComboBox.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No available models match selected filters.");
+        }
+    }
+
+    private boolean matchesReservationModelFilter(VehicleModel vehicleModel,
+                                                  String manufacturerFilter,
+                                                  String modelFilter,
+                                                  String categoryFilter) {
+        if (vehicleModel == null) {
+            return false;
+        }
+
+        if (!manufacturerFilter.isEmpty() && !vehicleModel.getManufacturer().toLowerCase().contains(manufacturerFilter)) {
+            return false;
+        }
+
+        if (!modelFilter.isEmpty() && !vehicleModel.getModel().toLowerCase().contains(modelFilter)) {
+            return false;
+        }
+
+        return categoryFilter == null ||
+                categoryFilter.equals("ANY") ||
+                vehicleModel.getVehicleCategory().name().equals(categoryFilter);
     }
 
     private void requestSubscriptionRenewal() {
