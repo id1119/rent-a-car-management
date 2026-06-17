@@ -34,8 +34,8 @@ public class ClientMainFrame extends JFrame {
 
         setTitle("Client - " + client.getName() + " " + client.getLastName());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(980, 680);
-        setMinimumSize(new Dimension(900, 620));
+        setSize(900, 620);
+        setMinimumSize(new Dimension(820, 560));
         setLocationRelativeTo(null);
 
         initComponents();
@@ -74,7 +74,7 @@ public class ClientMainFrame extends JFrame {
 
     private JPanel createProfilePanel() {
         JPanel outerPanel = GuiTheme.createCardPanel();
-        outerPanel.setLayout(new BorderLayout(0, 14));
+        outerPanel.setLayout(new BorderLayout(0, 6));
 
         outerPanel.add(GuiTheme.createSectionLabel("Profile details"), BorderLayout.NORTH);
 
@@ -109,7 +109,7 @@ public class ClientMainFrame extends JFrame {
 
     private JPanel createReservationsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -156,7 +156,7 @@ public class ClientMainFrame extends JFrame {
 
     private JPanel createSpendingPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
         titlePanel.setOpaque(false);
@@ -285,7 +285,7 @@ public class ClientMainFrame extends JFrame {
 
     private JPanel createAvailableModelsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new GridLayout(0, 1, 0, 4));
         titlePanel.setOpaque(false);
@@ -339,7 +339,7 @@ public class ClientMainFrame extends JFrame {
         addFormRow(filterPanel, gbc, 3, "Start date", startDateField);
         addFormRow(filterPanel, gbc, 4, "End date", endDateField);
 
-        JPanel topPanel = new JPanel(new BorderLayout(0, 12));
+        JPanel topPanel = new JPanel(new BorderLayout(0, 6));
         topPanel.setOpaque(false);
         topPanel.add(filterPanel, BorderLayout.CENTER);
 
@@ -380,7 +380,7 @@ public class ClientMainFrame extends JFrame {
         }
         vehicleModelComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel();
-            label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+            label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
             if (value != null) {
                 label.setText(value.getManufacturer() + " " + value.getModel() + " - " + value.getVehicleCategory());
             }
@@ -441,7 +441,7 @@ public class ClientMainFrame extends JFrame {
         JTextField textField = new JTextField(value);
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
         return textField;
     }
@@ -651,7 +651,7 @@ public class ClientMainFrame extends JFrame {
     private JPanel wrapWithMargin(JComponent component) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(GuiTheme.BACKGROUND);
-        wrapper.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        wrapper.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
         wrapper.add(component, BorderLayout.CENTER);
         return wrapper;
     }

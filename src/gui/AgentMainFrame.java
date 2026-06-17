@@ -57,8 +57,8 @@ public class AgentMainFrame extends JFrame {
 
         setTitle("Agent - " + agent.getName() + " " + agent.getLastName());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(980, 680);
-        setMinimumSize(new Dimension(900, 620));
+        setSize(900, 620);
+        setMinimumSize(new Dimension(820, 560));
         setLocationRelativeTo(null);
 
         initComponents();
@@ -98,7 +98,7 @@ public class AgentMainFrame extends JFrame {
 
     private JPanel createDailyOverviewPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel topPanel = new JPanel(new BorderLayout(12, 12));
         topPanel.setOpaque(false);
@@ -124,7 +124,7 @@ public class AgentMainFrame extends JFrame {
 
         panel.add(topPanel, BorderLayout.NORTH);
 
-        JPanel contentPanel = new JPanel(new BorderLayout(0, 14));
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 6));
         contentPanel.setOpaque(false);
         contentPanel.add(createDailySummaryPanel(), BorderLayout.NORTH);
 
@@ -141,7 +141,7 @@ public class AgentMainFrame extends JFrame {
 
     private JPanel createVehiclesPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel topPanel = new JPanel(new BorderLayout(12, 12));
         topPanel.setOpaque(false);
@@ -210,13 +210,13 @@ public class AgentMainFrame extends JFrame {
         panel.setBackground(GuiTheme.BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+                BorderFactory.createEmptyBorder(6, 6, 6, 6)
         ));
 
         JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
         titleLabel.setForeground(GuiTheme.MUTED_TEXT);
 
-        valueLabel.setFont(new Font("Avenir Next", Font.BOLD, 24));
+        valueLabel.setFont(new Font("Dialog", Font.BOLD, 16));
         valueLabel.setForeground(GuiTheme.PRIMARY_DARK);
 
         panel.add(titleLabel, BorderLayout.NORTH);
@@ -262,7 +262,7 @@ public class AgentMainFrame extends JFrame {
 
     private JPanel createReservationsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -395,7 +395,7 @@ public class AgentMainFrame extends JFrame {
 
     private JPanel createSubscriptionsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -434,7 +434,7 @@ public class AgentMainFrame extends JFrame {
 
     private JPanel createClientsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -1062,7 +1062,7 @@ public class AgentMainFrame extends JFrame {
 
     private JLabel createReservationComboLabel(Reservation reservation, boolean isSelected, JList<? extends Reservation> list) {
         JLabel label = new JLabel();
-        label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
         if (reservation != null) {
             VehicleModel model = reservation.getVehicleModel();
             label.setText("#" + reservation.getId() + " - " + reservation.getClient().getName() + " " + reservation.getClient().getLastName() + " - " + model.getManufacturer() + " " + model.getModel());
@@ -1073,7 +1073,7 @@ public class AgentMainFrame extends JFrame {
 
     private JLabel createVehicleComboLabel(Vehicle vehicle, boolean isSelected, JList<? extends Vehicle> list) {
         JLabel label = new JLabel();
-        label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
         if (vehicle != null) {
             label.setText(vehicle.getRegistration() + " - mileage " + vehicle.getMileage());
         }
@@ -1083,7 +1083,7 @@ public class AgentMainFrame extends JFrame {
 
     private JLabel createRentalComboLabel(VehicleRental vehicleRental, boolean isSelected, JList<? extends VehicleRental> list) {
         JLabel label = new JLabel();
-        label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
         if (vehicleRental != null && vehicleRental.getVehicle() != null && vehicleRental.getReservation() != null) {
             Reservation reservation = vehicleRental.getReservation();
             label.setText("#" + vehicleRental.getId() + " - " +
@@ -1178,7 +1178,7 @@ public class AgentMainFrame extends JFrame {
         JTextField textField = new JTextField(value);
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
         return textField;
     }
@@ -1187,7 +1187,7 @@ public class AgentMainFrame extends JFrame {
         JPasswordField passwordField = new JPasswordField();
         passwordField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
         return passwordField;
     }
@@ -1263,7 +1263,7 @@ public class AgentMainFrame extends JFrame {
     private JPanel wrapWithMargin(JComponent component) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(GuiTheme.BACKGROUND);
-        wrapper.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        wrapper.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
         wrapper.add(component, BorderLayout.CENTER);
         return wrapper;
     }

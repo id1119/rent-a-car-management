@@ -21,14 +21,14 @@ public class XChartDashboardPanel extends JPanel {
     private JPanel agentWorkloadChartContainer;
 
     public XChartDashboardPanel() {
-        setLayout(new BorderLayout(0, 16));
+        setLayout(new BorderLayout(0, 8));
         setBackground(GuiTheme.BACKGROUND);
 
         revenueChartContainer = createContainer();
         statusChartContainer = createContainer();
         agentWorkloadChartContainer = createContainer();
 
-        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 16, 0));
+        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 8, 0));
         bottomPanel.setOpaque(false);
         bottomPanel.add(statusChartContainer);
         bottomPanel.add(agentWorkloadChartContainer);
@@ -50,7 +50,7 @@ public class XChartDashboardPanel extends JPanel {
     private JPanel createContainer() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(GuiTheme.SURFACE);
-        panel.setBorder(BorderFactory.createLineBorder(GuiTheme.BORDER));
+        panel.setBorder(BorderFactory.createEtchedBorder());
         return panel;
     }
 
@@ -62,7 +62,7 @@ public class XChartDashboardPanel extends JPanel {
     private XChartPanel<CategoryChart> createRevenueChart(Map<String, LinkedHashMap<String, Double>> monthlyRevenue) {
         CategoryChart chart = new CategoryChartBuilder()
                 .width(980)
-                .height(330)
+                .height(300)
                 .title("Prihodi po kategoriji klijenta")
                 .xAxisTitle("Mesec")
                 .yAxisTitle("Prihod")
@@ -86,7 +86,7 @@ public class XChartDashboardPanel extends JPanel {
     private PieChart createPieChart(String title, Map<String, Integer> source) {
         PieChart chart = new PieChartBuilder()
                 .width(470)
-                .height(330)
+                .height(300)
                 .title(title)
                 .build();
 
@@ -118,7 +118,11 @@ public class XChartDashboardPanel extends JPanel {
         chart.getStyler().setChartFontColor(GuiTheme.TEXT);
         chart.getStyler().setAxisTickLabelsColor(GuiTheme.TEXT);
         chart.getStyler().setXAxisLabelRotation(45);
-        chart.getStyler().setToolTipsEnabled(true);
+        chart.getStyler().setToolTipsEnabled(false);
+        chart.getStyler().setChartTitleFont(new Font("Dialog", Font.BOLD, 13));
+        chart.getStyler().setAxisTitleFont(new Font("Dialog", Font.PLAIN, 12));
+        chart.getStyler().setAxisTickLabelsFont(new Font("Dialog", Font.PLAIN, 11));
+        chart.getStyler().setLegendFont(new Font("Dialog", Font.PLAIN, 11));
     }
 
     private void stylePieChart(PieChart chart) {
@@ -127,7 +131,9 @@ public class XChartDashboardPanel extends JPanel {
         chart.getStyler().setPlotBackgroundColor(Color.WHITE);
         chart.getStyler().setChartFontColor(GuiTheme.TEXT);
         chart.getStyler().setLabelsVisible(false);
-        chart.getStyler().setToolTipsEnabled(true);
+        chart.getStyler().setToolTipsEnabled(false);
+        chart.getStyler().setChartTitleFont(new Font("Dialog", Font.BOLD, 13));
+        chart.getStyler().setLegendFont(new Font("Dialog", Font.PLAIN, 11));
     }
 
     private List<String> extractMonths(Map<String, LinkedHashMap<String, Double>> monthlyRevenue) {

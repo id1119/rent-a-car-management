@@ -71,8 +71,8 @@ public class AdminMainFrame extends JFrame {
 
         setTitle("Administrator - " + administrator.getName() + " " + administrator.getLastName());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1080, 720);
-        setMinimumSize(new Dimension(980, 660));
+        setSize(950, 650);
+        setMinimumSize(new Dimension(850, 580));
         setLocationRelativeTo(null);
 
         initComponents();
@@ -111,9 +111,9 @@ public class AdminMainFrame extends JFrame {
     }
 
     private JPanel createEmployeesPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1, 0, 16));
+        JPanel panel = new JPanel(new GridLayout(2, 1, 0, 8));
         panel.setBackground(GuiTheme.BACKGROUND);
-        panel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
         panel.add(createAgentsPanel());
         panel.add(createAdministratorsPanel());
@@ -123,7 +123,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createAgentsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -160,7 +160,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createAdministratorsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -197,7 +197,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createClientsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -233,7 +233,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createPricingPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -298,9 +298,9 @@ public class AdminMainFrame extends JFrame {
     }
 
     private JPanel createVehiclesPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1, 0, 16));
+        JPanel panel = new JPanel(new GridLayout(2, 1, 0, 8));
         panel.setBackground(GuiTheme.BACKGROUND);
-        panel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
         panel.add(createVehicleModelsPanel());
         panel.add(createPhysicalVehiclesPanel());
@@ -310,7 +310,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createVehicleModelsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -347,7 +347,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createPhysicalVehiclesPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
@@ -411,11 +411,11 @@ public class AdminMainFrame extends JFrame {
     private JPanel createOperationsPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setBackground(GuiTheme.BACKGROUND);
-        panel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
         panel.add(createOperationsSummaryPanel(), BorderLayout.NORTH);
 
-        JPanel tablesPanel = new JPanel(new GridLayout(2, 1, 0, 16));
+        JPanel tablesPanel = new JPanel(new GridLayout(2, 1, 0, 8));
         tablesPanel.setBackground(GuiTheme.BACKGROUND);
         tablesPanel.add(createOperationsReservationsPanel());
         tablesPanel.add(createOperationsRentalsPanel());
@@ -448,12 +448,12 @@ public class AdminMainFrame extends JFrame {
         panel.setBackground(GuiTheme.SURFACE);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+                BorderFactory.createEmptyBorder(6, 6, 6, 6)
         ));
 
         JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
         titleLabel.setForeground(GuiTheme.MUTED_TEXT);
-        valueLabel.setFont(new Font("Avenir Next", Font.BOLD, 22));
+        valueLabel.setFont(new Font("Dialog", Font.BOLD, 16));
         valueLabel.setForeground(GuiTheme.PRIMARY_DARK);
 
         panel.add(titleLabel, BorderLayout.NORTH);
@@ -463,7 +463,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createOperationsReservationsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 10));
         headerPanel.setOpaque(false);
@@ -537,7 +537,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createOperationsRentalsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 10));
         headerPanel.setOpaque(false);
@@ -872,7 +872,7 @@ public class AdminMainFrame extends JFrame {
 
     private JPanel createReportsPanel() {
         JPanel panel = GuiTheme.createCardPanel();
-        panel.setLayout(new BorderLayout(0, 14));
+        panel.setLayout(new BorderLayout(0, 6));
 
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         filterPanel.setOpaque(false);
@@ -2047,7 +2047,7 @@ public class AdminMainFrame extends JFrame {
         JTextField textField = new JTextField(value);
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(6, 8, 6, 8)
+                BorderFactory.createEmptyBorder(3, 4, 3, 4)
         ));
         return textField;
     }
@@ -2056,7 +2056,7 @@ public class AdminMainFrame extends JFrame {
         JPasswordField passwordField = new JPasswordField();
         passwordField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(6, 8, 6, 8)
+                BorderFactory.createEmptyBorder(3, 4, 3, 4)
         ));
         return passwordField;
     }
@@ -2080,14 +2080,14 @@ public class AdminMainFrame extends JFrame {
     private JPanel wrapWithTopMargin(JComponent component) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(GuiTheme.BACKGROUND);
-        wrapper.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        wrapper.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
         wrapper.add(component, BorderLayout.CENTER);
         return wrapper;
     }
 
     private JLabel createVehicleModelComboLabel(VehicleModel vehicleModel, boolean isSelected, JList<? extends VehicleModel> list) {
         JLabel label = new JLabel();
-        label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
         if (vehicleModel != null) {
             label.setText(vehicleModel.getManufacturer() + " " + vehicleModel.getModel() + " - " + vehicleModel.getVehicleCategory());
         }

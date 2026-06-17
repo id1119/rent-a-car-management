@@ -28,7 +28,7 @@ public class LoginFrame extends JFrame {
 
     private void initComponents() {
         JPanel mainPanel = GuiTheme.createPagePanel();
-        mainPanel.setPreferredSize(new Dimension(520, 380));
+        mainPanel.setPreferredSize(new Dimension(420, 300));
 
         JPanel contentPanel = GuiTheme.createCardPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -44,21 +44,18 @@ public class LoginFrame extends JFrame {
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(subtitleLabel);
 
-        contentPanel.add(Box.createVerticalStrut(28));
+        contentPanel.add(Box.createVerticalStrut(18));
 
         contentPanel.add(createFieldPanel("Username", usernameField = createTextField()));
         contentPanel.add(Box.createVerticalStrut(14));
         contentPanel.add(createFieldPanel("Password", passwordField = createPasswordField()));
 
-        contentPanel.add(Box.createVerticalStrut(24));
+        contentPanel.add(Box.createVerticalStrut(16));
 
         JButton loginButton = new JButton("Login");
-        loginButton.setForeground(GuiTheme.TEXT);
-        loginButton.setBackground(new Color(232, 232, 232));
-        loginButton.setFocusPainted(false);
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loginButton.setPreferredSize(new Dimension(360, 44));
-        loginButton.setMaximumSize(new Dimension(360, 44));
+        loginButton.setPreferredSize(new Dimension(120, 28));
+        loginButton.setMaximumSize(new Dimension(120, 28));
         loginButton.addActionListener(e -> handleLogin());
         getRootPane().setDefaultButton(loginButton);
         contentPanel.add(loginButton);
@@ -93,12 +90,8 @@ public class LoginFrame extends JFrame {
     }
 
     private void styleInputField(JTextField textField) {
-        textField.setPreferredSize(new Dimension(360, 38));
-        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        textField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(GuiTheme.BORDER),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
+        textField.setPreferredSize(new Dimension(260, 24));
+        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
     }
 
     private void handleLogin() {
