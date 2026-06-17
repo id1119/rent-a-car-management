@@ -1,5 +1,5 @@
 id;name;lastName;gender;birthday;phoneNumber;address;userName;password;driversLicenseIssueDate;clientCategory;subscriptionId;subscriptionStatus;subscriptionExpirationDate;lateReturnsCount;reservationBlockedUntil
-1;Marko;Markovic;M;1998-04-12;+38164111222;Bulevar Oslobodjenja 12 Novi Sad;marko.markovic@example.com;client;2018-05-20;STUDENT;1;ACTIVE;2027-06-01;0;
+1;Marko;Markovic;M;1998-04-12;+38164111222;Bulevar Oslobodjenja 12 Novi Sad;client;client;2018-05-20;STUDENT;1;ACTIVE;2027-06-01;0;
 2;Jelena;Jovanovic;F;1994-09-03;+38164222333;Kralja Petra 8 Beograd;jelena.jovanovic@example.com;jelena123;2016-10-14;;2;ACTIVE;2027-01-15;1;
 3;Nikola;Petrovic;M;1987-02-21;+38164333444;Cara Dusana 45 Nis;nikola.petrovic@example.com;nikola123;2010-03-02;COMPANY;3;ACTIVE;2026-12-31;2;
 4;Ana;Ilic;F;2001-11-30;+38164444555;Zmaj Jovina 5 Subotica;ana.ilic@example.com;ana123;2021-06-11;STUDENT;4;ACTIVE;2026-09-10;0;

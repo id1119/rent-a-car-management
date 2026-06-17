@@ -120,7 +120,7 @@ public class ClientMainFrame extends JFrame {
         titlePanel.add(cancelButton, BorderLayout.EAST);
         panel.add(titlePanel, BorderLayout.NORTH);
 
-        String[] columns = {"ID", "Model", "Start", "End", "Status", "Price"};
+        String[] columns = {"ID", "Model", "Start", "End", "Status", "Base price", "Extra services", "Total price"};
         reservationsTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -148,6 +148,8 @@ public class ClientMainFrame extends JFrame {
                         reservation.getStartDate(),
                         reservation.getEndDate(),
                         reservation.getReservationStatus(),
+                        reservation.getRentalBasePrice(),
+                        reservation.getTotalExtraServicesPrice(),
                         reservation.getPrice()
                 });
             }

@@ -25,8 +25,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdminMainFrame extends JFrame {
@@ -51,6 +53,7 @@ public class AdminMainFrame extends JFrame {
     private JTable vehicleModelsTable;
     private JTable vehiclesTable;
     private JTable operationsReservationsTable;
+    private JTable operationsRentalsTable;
     private JComboBox<String> operationsReservationStatusFilter;
     private JTextField operationsReservationStartDateFilter;
     private JTextField operationsReservationEndDateFilter;
@@ -473,6 +476,12 @@ public class AdminMainFrame extends JFrame {
         titlePanel.add(GuiTheme.createSectionLabel("All reservations"), BorderLayout.WEST);
 
         JPanel actionPanel = createActionPanel();
+        JButton addButton = GuiTheme.createPrimaryButton("Add");
+        addButton.addActionListener(e -> showAddOperationReservationDialog());
+        JButton editButton = GuiTheme.createSecondaryButton("Edit");
+        editButton.addActionListener(e -> showEditOperationReservationDialog());
+        JButton deleteButton = GuiTheme.createSecondaryButton("Delete");
+        deleteButton.addActionListener(e -> deleteSelectedOperationReservation());
         JButton approveButton = GuiTheme.createPrimaryButton("Approve");
         approveButton.addActionListener(e -> approveSelectedOperationReservation());
         JButton rejectButton = GuiTheme.createSecondaryButton("Reject");
@@ -481,6 +490,9 @@ public class AdminMainFrame extends JFrame {
         cancelButton.addActionListener(e -> cancelSelectedOperationReservation());
         JButton refreshButton = GuiTheme.createSecondaryButton("Refresh");
         refreshButton.addActionListener(e -> refreshOperationsTables());
+        actionPanel.add(addButton);
+        actionPanel.add(editButton);
+        actionPanel.add(deleteButton);
         actionPanel.add(approveButton);
         actionPanel.add(rejectButton);
         actionPanel.add(cancelButton);
@@ -520,7 +532,7 @@ public class AdminMainFrame extends JFrame {
 
         panel.add(headerPanel, BorderLayout.NORTH);
 
-        operationsReservationsTableModel = new DefaultTableModel(new String[]{"ID", "Client", "Model", "Start", "End", "Status", "Vehicle", "Price"}, 0) {
+        operationsReservationsTableModel = new DefaultTableModel(new String[]{"ID", "Client", "Model", "Start", "End", "Status", "Vehicle", "Base price", "Extra services", "Total price"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -546,9 +558,20 @@ public class AdminMainFrame extends JFrame {
         titlePanel.setOpaque(false);
         titlePanel.add(GuiTheme.createSectionLabel("All rentals"), BorderLayout.WEST);
 
+        JPanel actionPanel = createActionPanel();
+        JButton addButton = GuiTheme.createPrimaryButton("Add");
+        addButton.addActionListener(e -> showAddOperationRentalDialog());
+        JButton editButton = GuiTheme.createSecondaryButton("Edit");
+        editButton.addActionListener(e -> showEditOperationRentalDialog());
+        JButton deleteButton = GuiTheme.createSecondaryButton("Delete");
+        deleteButton.addActionListener(e -> deleteSelectedOperationRental());
         JButton refreshButton = GuiTheme.createSecondaryButton("Refresh");
         refreshButton.addActionListener(e -> refreshOperationsTables());
-        titlePanel.add(refreshButton, BorderLayout.EAST);
+        actionPanel.add(addButton);
+        actionPanel.add(editButton);
+        actionPanel.add(deleteButton);
+        actionPanel.add(refreshButton);
+        titlePanel.add(actionPanel, BorderLayout.EAST);
         headerPanel.add(titlePanel, BorderLayout.NORTH);
 
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -586,9 +609,9 @@ public class AdminMainFrame extends JFrame {
             }
         };
 
-        JTable table = new JTable(operationsRentalsTableModel);
-        GuiTheme.styleTable(table);
-        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        operationsRentalsTable = new JTable(operationsRentalsTableModel);
+        GuiTheme.styleTable(operationsRentalsTable);
+        panel.add(new JScrollPane(operationsRentalsTable), BorderLayout.CENTER);
 
         refreshOperationsRentalsTable();
         return panel;
@@ -693,6 +716,8 @@ public class AdminMainFrame extends JFrame {
                     reservation.getEndDate(),
                     reservation.getReservationStatus(),
                     assignedVehicle == null ? "" : assignedVehicle.getRegistration(),
+                    reservation.getRentalBasePrice(),
+                    reservation.getTotalExtraServicesPrice(),
                     reservation.getPrice()
             });
         }
@@ -868,6 +893,406 @@ public class AdminMainFrame extends JFrame {
         refreshOperationsTables();
         refreshCharts();
         JOptionPane.showMessageDialog(this, "Reservation rejected.");
+    }
+
+    private void showAddOperationReservationDialog() {
+        ReservationFormData formData = showReservationFormDialog("Add reservation", null);
+        if (formData == null) {
+            return;
+        }
+
+        Reservation reservation = new Reservation(
+                app.getNextReservationId(),
+                formData.client,
+                formData.vehicleModel,
+                formData.startDate,
+                formData.endDate,
+                formData.getTotalPrice(),
+                formData.rentalBasePrice,
+                formData.reservationExtraServicesPrice,
+                formData.issueExtraServicesPrice,
+                formData.extraServices
+        );
+        applyReservationFormData(reservation, formData);
+        app.getReservationService().addReservation(reservation);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshCharts();
+    }
+
+    private void showEditOperationReservationDialog() {
+        Reservation reservation = findReservationById(getSelectedId(operationsReservationsTable));
+        if (reservation == null) {
+            JOptionPane.showMessageDialog(this, "Select a reservation first.");
+            return;
+        }
+
+        ReservationFormData formData = showReservationFormDialog("Edit reservation", reservation);
+        if (formData == null) {
+            return;
+        }
+
+        applyReservationFormData(reservation, formData);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshCharts();
+    }
+
+    private void deleteSelectedOperationReservation() {
+        Reservation reservation = findReservationById(getSelectedId(operationsReservationsTable));
+        if (reservation == null) {
+            JOptionPane.showMessageDialog(this, "Select a reservation first.");
+            return;
+        }
+
+        if (isReservationUsedByRental(reservation)) {
+            JOptionPane.showMessageDialog(this, "Reservation cannot be deleted because there is a rental for it.");
+            return;
+        }
+
+        if (!confirmDelete("Delete selected reservation?")) {
+            return;
+        }
+
+        app.getReservationService().removeReservation(reservation);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshCharts();
+    }
+
+    private void showAddOperationRentalDialog() {
+        RentalFormData formData = showRentalFormDialog("Add rental", null);
+        if (formData == null) {
+            return;
+        }
+
+        VehicleRental rental = new VehicleRental(
+                app.getNextVehicleRentalId(),
+                formData.startRentDate,
+                formData.endRentDate,
+                formData.actualEndRentDate,
+                formData.startMileage,
+                formData.endMileage,
+                formData.penaltyForBeingLate,
+                formData.vehicle,
+                formData.reservation,
+                formData.agent
+        );
+        applyRentalVehicleState(rental);
+        app.getVehicleRentalService().addRental(rental);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshVehiclesTable();
+        refreshCharts();
+    }
+
+    private void showEditOperationRentalDialog() {
+        VehicleRental rental = findRentalById(getSelectedId(operationsRentalsTable));
+        if (rental == null) {
+            JOptionPane.showMessageDialog(this, "Select a rental first.");
+            return;
+        }
+
+        RentalFormData formData = showRentalFormDialog("Edit rental", rental);
+        if (formData == null) {
+            return;
+        }
+
+        rental.setStartRentDate(formData.startRentDate);
+        rental.setEndRentDate(formData.endRentDate);
+        rental.setActualEndRentDate(formData.actualEndRentDate);
+        rental.setStartMileage(formData.startMileage);
+        rental.setEndMileage(formData.endMileage);
+        rental.setPenaltyForBeingLate(formData.penaltyForBeingLate);
+        rental.setVehicle(formData.vehicle);
+        rental.setReservation(formData.reservation);
+        rental.setAgent(formData.agent);
+        applyRentalVehicleState(rental);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshVehiclesTable();
+        refreshCharts();
+    }
+
+    private void deleteSelectedOperationRental() {
+        VehicleRental rental = findRentalById(getSelectedId(operationsRentalsTable));
+        if (rental == null) {
+            JOptionPane.showMessageDialog(this, "Select a rental first.");
+            return;
+        }
+
+        if (!confirmDelete("Delete selected rental?")) {
+            return;
+        }
+
+        if (rental.getReservation() != null && rental.getReservation().getAssignedVehicle() == rental.getVehicle()) {
+            rental.getReservation().setAssignedVehicle(null);
+        }
+        if (rental.getVehicle() != null && rental.getVehicle().getVehicleStatus() == VehicleStatus.RENTED) {
+            rental.getVehicle().setVehicleStatus(VehicleStatus.AVAILABLE);
+        }
+        app.getVehicleRentalService().removeRental(rental);
+        app.saveAll();
+        refreshOperationsTables();
+        refreshVehiclesTable();
+        refreshCharts();
+    }
+
+    private ReservationFormData showReservationFormDialog(String title, Reservation initialReservation) {
+        JComboBox<Client> clientComboBox = new JComboBox<>();
+        for (Client client : app.getClientService().getClients()) {
+            clientComboBox.addItem(client);
+        }
+        clientComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createClientComboLabel(value, isSelected, list));
+        JComboBox<VehicleModel> modelComboBox = new JComboBox<>();
+        for (VehicleModel vehicleModel : app.getVehicleModels()) {
+            modelComboBox.addItem(vehicleModel);
+        }
+        modelComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createVehicleModelComboLabel(value, isSelected, list));
+        JComboBox<ReservationStatus> statusComboBox = new JComboBox<>(ReservationStatus.values());
+        JComboBox<Vehicle> assignedVehicleComboBox = new JComboBox<>();
+        assignedVehicleComboBox.addItem(null);
+        for (Vehicle vehicle : app.getVehicleService().getVehicles()) {
+            assignedVehicleComboBox.addItem(vehicle);
+        }
+        assignedVehicleComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createVehicleComboLabel(value, isSelected, list));
+        JComboBox<Agent> processedByAgentComboBox = new JComboBox<>();
+        processedByAgentComboBox.addItem(null);
+        for (Agent agent : app.getAgents()) {
+            processedByAgentComboBox.addItem(agent);
+        }
+        processedByAgentComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createAgentComboLabel(value, isSelected, list));
+
+        JTextField startDateField = createTextField(initialReservation == null ? LocalDate.now().plusDays(1).toString() : initialReservation.getStartDate().toString());
+        JTextField endDateField = createTextField(initialReservation == null ? LocalDate.now().plusDays(3).toString() : initialReservation.getEndDate().toString());
+        JTextField rentalBaseField = createTextField(initialReservation == null ? "0.0" : String.valueOf(initialReservation.getRentalBasePrice()));
+        JTextField reservationExtrasField = createTextField(initialReservation == null ? "0.0" : String.valueOf(initialReservation.getReservationExtraServicesPrice()));
+        JTextField issueExtrasField = createTextField(initialReservation == null ? "0.0" : String.valueOf(initialReservation.getIssueExtraServicesPrice()));
+
+        JCheckBox gpsCheckBox = new JCheckBox("GPS");
+        JCheckBox childSeatCheckBox = new JCheckBox("Child seat");
+        JCheckBox insuranceCheckBox = new JCheckBox("Additional insurance");
+        JCheckBox extendedUseCheckBox = new JCheckBox("Extended use");
+        JPanel extrasPanel = new JPanel(new GridLayout(0, 2));
+        extrasPanel.add(gpsCheckBox);
+        extrasPanel.add(childSeatCheckBox);
+        extrasPanel.add(insuranceCheckBox);
+        extrasPanel.add(extendedUseCheckBox);
+
+        if (initialReservation != null) {
+            clientComboBox.setSelectedItem(initialReservation.getClient());
+            modelComboBox.setSelectedItem(initialReservation.getVehicleModel());
+            statusComboBox.setSelectedItem(initialReservation.getReservationStatus());
+            assignedVehicleComboBox.setSelectedItem(initialReservation.getAssignedVehicle());
+            processedByAgentComboBox.setSelectedItem(initialReservation.getProcessedByAgent());
+            gpsCheckBox.setSelected(initialReservation.getExtraServices().contains(ExtraService.GPS));
+            childSeatCheckBox.setSelected(initialReservation.getExtraServices().contains(ExtraService.CHILD_SEAT));
+            insuranceCheckBox.setSelected(initialReservation.getExtraServices().contains(ExtraService.ADDITIONAL_INSURANCE));
+            extendedUseCheckBox.setSelected(initialReservation.getExtraServices().contains(ExtraService.EXTENDED_USE));
+        }
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 8, 8));
+        panel.add(new JLabel("Client:"));
+        panel.add(clientComboBox);
+        panel.add(new JLabel("Vehicle model:"));
+        panel.add(modelComboBox);
+        panel.add(new JLabel("Status:"));
+        panel.add(statusComboBox);
+        panel.add(new JLabel("Start date:"));
+        panel.add(startDateField);
+        panel.add(new JLabel("End date:"));
+        panel.add(endDateField);
+        panel.add(new JLabel("Assigned vehicle:"));
+        panel.add(assignedVehicleComboBox);
+        panel.add(new JLabel("Processed by agent:"));
+        panel.add(processedByAgentComboBox);
+        panel.add(new JLabel("Base price:"));
+        panel.add(rentalBaseField);
+        panel.add(new JLabel("Reservation extras price:"));
+        panel.add(reservationExtrasField);
+        panel.add(new JLabel("Issue extras price:"));
+        panel.add(issueExtrasField);
+        panel.add(new JLabel("Extra services:"));
+        panel.add(extrasPanel);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) {
+            return null;
+        }
+
+        try {
+            ReservationFormData formData = new ReservationFormData();
+            formData.client = (Client) clientComboBox.getSelectedItem();
+            formData.vehicleModel = (VehicleModel) modelComboBox.getSelectedItem();
+            formData.reservationStatus = (ReservationStatus) statusComboBox.getSelectedItem();
+            formData.startDate = LocalDate.parse(startDateField.getText().trim());
+            formData.endDate = LocalDate.parse(endDateField.getText().trim());
+            formData.assignedVehicle = (Vehicle) assignedVehicleComboBox.getSelectedItem();
+            formData.processedByAgent = (Agent) processedByAgentComboBox.getSelectedItem();
+            formData.rentalBasePrice = parseNonNegativeDouble(rentalBaseField);
+            formData.reservationExtraServicesPrice = parseNonNegativeDouble(reservationExtrasField);
+            formData.issueExtraServicesPrice = parseNonNegativeDouble(issueExtrasField);
+            formData.extraServices = new ArrayList<>();
+            if (gpsCheckBox.isSelected()) {
+                formData.extraServices.add(ExtraService.GPS);
+            }
+            if (childSeatCheckBox.isSelected()) {
+                formData.extraServices.add(ExtraService.CHILD_SEAT);
+            }
+            if (insuranceCheckBox.isSelected()) {
+                formData.extraServices.add(ExtraService.ADDITIONAL_INSURANCE);
+            }
+            if (extendedUseCheckBox.isSelected()) {
+                formData.extraServices.add(ExtraService.EXTENDED_USE);
+            }
+
+            if (formData.client == null || formData.vehicleModel == null || formData.reservationStatus == null) {
+                JOptionPane.showMessageDialog(this, "Client, model and status are required.");
+                return null;
+            }
+            if (formData.endDate.isBefore(formData.startDate)) {
+                JOptionPane.showMessageDialog(this, "End date cannot be before start date.");
+                return null;
+            }
+            if (formData.assignedVehicle != null && formData.assignedVehicle.getVehicleModel().getId() != formData.vehicleModel.getId()) {
+                JOptionPane.showMessageDialog(this, "Assigned vehicle must match reservation model.");
+                return null;
+            }
+            return formData;
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Dates must use yyyy-mm-dd format.");
+            return null;
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Prices must be non-negative numbers.");
+            return null;
+        }
+    }
+
+    private RentalFormData showRentalFormDialog(String title, VehicleRental initialRental) {
+        JComboBox<Vehicle> vehicleComboBox = new JComboBox<>();
+        for (Vehicle vehicle : app.getVehicleService().getVehicles()) {
+            vehicleComboBox.addItem(vehicle);
+        }
+        vehicleComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createVehicleComboLabel(value, isSelected, list));
+        JComboBox<Reservation> reservationComboBox = new JComboBox<>();
+        for (Reservation reservation : app.getReservationService().getReservations()) {
+            reservationComboBox.addItem(reservation);
+        }
+        reservationComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createReservationComboLabel(value, isSelected, list));
+        JComboBox<Agent> agentComboBox = new JComboBox<>();
+        agentComboBox.addItem(null);
+        for (Agent agent : app.getAgents()) {
+            agentComboBox.addItem(agent);
+        }
+        agentComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> createAgentComboLabel(value, isSelected, list));
+
+        JTextField startDateField = createTextField(initialRental == null ? LocalDate.now().toString() : initialRental.getStartRentDate().toString());
+        JTextField plannedEndField = createTextField(initialRental == null ? LocalDate.now().plusDays(3).toString() : initialRental.getEndRentDate().toString());
+        JTextField actualEndField = createTextField(initialRental == null || initialRental.getActualEndRentDate() == null ? "" : initialRental.getActualEndRentDate().toString());
+        JTextField startMileageField = createTextField(initialRental == null ? "0" : String.valueOf(initialRental.getStartMileage()));
+        JTextField endMileageField = createTextField(initialRental == null ? "0" : String.valueOf(initialRental.getEndMileage()));
+        JTextField penaltyField = createTextField(initialRental == null ? "0.0" : String.valueOf(initialRental.getPenaltyForBeingLate()));
+
+        if (initialRental != null) {
+            vehicleComboBox.setSelectedItem(initialRental.getVehicle());
+            reservationComboBox.setSelectedItem(initialRental.getReservation());
+            agentComboBox.setSelectedItem(initialRental.getAgent());
+        }
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 8, 8));
+        panel.add(new JLabel("Vehicle:"));
+        panel.add(vehicleComboBox);
+        panel.add(new JLabel("Reservation:"));
+        panel.add(reservationComboBox);
+        panel.add(new JLabel("Agent:"));
+        panel.add(agentComboBox);
+        panel.add(new JLabel("Start rent date:"));
+        panel.add(startDateField);
+        panel.add(new JLabel("Planned end date:"));
+        panel.add(plannedEndField);
+        panel.add(new JLabel("Actual end date:"));
+        panel.add(actualEndField);
+        panel.add(new JLabel("Start mileage:"));
+        panel.add(startMileageField);
+        panel.add(new JLabel("End mileage:"));
+        panel.add(endMileageField);
+        panel.add(new JLabel("Penalty:"));
+        panel.add(penaltyField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) {
+            return null;
+        }
+
+        try {
+            RentalFormData formData = new RentalFormData();
+            formData.vehicle = (Vehicle) vehicleComboBox.getSelectedItem();
+            formData.reservation = (Reservation) reservationComboBox.getSelectedItem();
+            formData.agent = (Agent) agentComboBox.getSelectedItem();
+            formData.startRentDate = LocalDate.parse(startDateField.getText().trim());
+            formData.endRentDate = LocalDate.parse(plannedEndField.getText().trim());
+            formData.actualEndRentDate = actualEndField.getText().trim().isEmpty() ? null : LocalDate.parse(actualEndField.getText().trim());
+            formData.startMileage = Integer.parseInt(startMileageField.getText().trim());
+            formData.endMileage = Integer.parseInt(endMileageField.getText().trim());
+            formData.penaltyForBeingLate = parseNonNegativeDouble(penaltyField);
+
+            if (formData.vehicle == null || formData.reservation == null) {
+                JOptionPane.showMessageDialog(this, "Vehicle and reservation are required.");
+                return null;
+            }
+            if (formData.endRentDate.isBefore(formData.startRentDate)) {
+                JOptionPane.showMessageDialog(this, "Planned end date cannot be before start date.");
+                return null;
+            }
+            if (formData.actualEndRentDate != null && formData.actualEndRentDate.isBefore(formData.startRentDate)) {
+                JOptionPane.showMessageDialog(this, "Actual end date cannot be before start date.");
+                return null;
+            }
+            if (formData.startMileage < 0 || formData.endMileage < 0) {
+                JOptionPane.showMessageDialog(this, "Mileage cannot be negative.");
+                return null;
+            }
+            if (formData.reservation.getVehicleModel().getId() != formData.vehicle.getVehicleModel().getId()) {
+                JOptionPane.showMessageDialog(this, "Vehicle model must match reservation model.");
+                return null;
+            }
+            return formData;
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Dates must use yyyy-mm-dd format.");
+            return null;
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Mileage and penalty must be valid numbers.");
+            return null;
+        }
+    }
+
+    private void applyReservationFormData(Reservation reservation, ReservationFormData formData) {
+        reservation.setClient(formData.client);
+        reservation.setVehicleModel(formData.vehicleModel);
+        reservation.setReservationStatus(formData.reservationStatus);
+        reservation.setStartDate(formData.startDate);
+        reservation.setEndDate(formData.endDate);
+        reservation.setAssignedVehicle(formData.assignedVehicle);
+        reservation.setProcessedByAgent(formData.processedByAgent);
+        reservation.setRentalBasePrice(formData.rentalBasePrice);
+        reservation.setReservationExtraServicesPrice(formData.reservationExtraServicesPrice);
+        reservation.setIssueExtraServicesPrice(formData.issueExtraServicesPrice);
+        reservation.setPrice(formData.getTotalPrice());
+        reservation.setExtraServices(formData.extraServices);
+    }
+
+    private void applyRentalVehicleState(VehicleRental rental) {
+        if (rental.getReservation() != null) {
+            rental.getReservation().setAssignedVehicle(rental.getVehicle());
+        }
+        if (rental.getVehicle() != null) {
+            rental.getVehicle().setVehicleStatus(rental.getActualEndRentDate() == null ? VehicleStatus.RENTED : VehicleStatus.AVAILABLE);
+            if (rental.getEndMileage() > 0) {
+                rental.getVehicle().setMileage(rental.getEndMileage());
+            } else {
+                rental.getVehicle().setMileage(rental.getStartMileage());
+            }
+        }
     }
 
     private JPanel createReportsPanel() {
@@ -2099,6 +2524,58 @@ public class AdminMainFrame extends JFrame {
         return label;
     }
 
+    private JLabel createClientComboLabel(Client client, boolean isSelected, JList<? extends Client> list) {
+        JLabel label = createComboLabel(isSelected, list);
+        if (client != null) {
+            label.setText(client.getId() + " - " + client.getName() + " " + client.getLastName());
+        }
+        return label;
+    }
+
+    private JLabel createAgentComboLabel(Agent agent, boolean isSelected, JList<? extends Agent> list) {
+        JLabel label = createComboLabel(isSelected, list);
+        if (agent == null) {
+            label.setText("None");
+        } else {
+            label.setText(agent.getId() + " - " + agent.getName() + " " + agent.getLastName());
+        }
+        return label;
+    }
+
+    private JLabel createVehicleComboLabel(Vehicle vehicle, boolean isSelected, JList<? extends Vehicle> list) {
+        JLabel label = createComboLabel(isSelected, list);
+        if (vehicle == null) {
+            label.setText("None");
+        } else {
+            VehicleModel vehicleModel = vehicle.getVehicleModel();
+            label.setText(vehicle.getId() + " - " + vehicle.getRegistration() + " - " +
+                    (vehicleModel == null ? "" : vehicleModel.getManufacturer() + " " + vehicleModel.getModel()));
+        }
+        return label;
+    }
+
+    private JLabel createReservationComboLabel(Reservation reservation, boolean isSelected, JList<? extends Reservation> list) {
+        JLabel label = createComboLabel(isSelected, list);
+        if (reservation != null) {
+            VehicleModel vehicleModel = reservation.getVehicleModel();
+            label.setText(reservation.getId() + " - " +
+                    reservation.getClient().getName() + " " + reservation.getClient().getLastName() + " - " +
+                    (vehicleModel == null ? "" : vehicleModel.getManufacturer() + " " + vehicleModel.getModel()));
+        }
+        return label;
+    }
+
+    private JLabel createComboLabel(boolean isSelected, JList<?> list) {
+        JLabel label = new JLabel();
+        label.setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 4));
+        if (isSelected) {
+            label.setOpaque(true);
+            label.setBackground(list.getSelectionBackground());
+            label.setForeground(list.getSelectionForeground());
+        }
+        return label;
+    }
+
     private JPanel createActionPanel() {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionPanel.setOpaque(false);
@@ -2170,6 +2647,15 @@ public class AdminMainFrame extends JFrame {
         for (Reservation reservation : app.getReservationService().getReservations()) {
             if (reservation.getId() == id) {
                 return reservation;
+            }
+        }
+        return null;
+    }
+
+    private VehicleRental findRentalById(int id) {
+        for (VehicleRental rental : app.getVehicleRentalService().getVehicleRentals()) {
+            if (rental.getId() == id) {
+                return rental;
             }
         }
         return null;
@@ -2259,6 +2745,15 @@ public class AdminMainFrame extends JFrame {
             }
         }
 
+        return false;
+    }
+
+    private boolean isReservationUsedByRental(Reservation reservation) {
+        for (VehicleRental rental : app.getVehicleRentalService().getVehicleRentals()) {
+            if (rental.getReservation() == reservation) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -2410,6 +2905,36 @@ public class AdminMainFrame extends JFrame {
         private int lateReturnsCount;
         private SubscriptionStatus subscriptionStatus;
         private LocalDate subscriptionExpirationDate;
+    }
+
+    private static class ReservationFormData {
+        private Client client;
+        private VehicleModel vehicleModel;
+        private ReservationStatus reservationStatus;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private Vehicle assignedVehicle;
+        private Agent processedByAgent;
+        private double rentalBasePrice;
+        private double reservationExtraServicesPrice;
+        private double issueExtraServicesPrice;
+        private List<ExtraService> extraServices = new ArrayList<>();
+
+        private double getTotalPrice() {
+            return rentalBasePrice + reservationExtraServicesPrice + issueExtraServicesPrice;
+        }
+    }
+
+    private static class RentalFormData {
+        private Vehicle vehicle;
+        private Reservation reservation;
+        private Agent agent;
+        private LocalDate startRentDate;
+        private LocalDate endRentDate;
+        private LocalDate actualEndRentDate;
+        private int startMileage;
+        private int endMileage;
+        private double penaltyForBeingLate;
     }
 
     private static class PricingFormData {

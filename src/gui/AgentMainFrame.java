@@ -158,34 +158,36 @@ public class AgentMainFrame extends JFrame {
         titlePanel.add(hintLabel);
         topPanel.add(titlePanel, BorderLayout.WEST);
 
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+        JPanel filterPanel = new JPanel(new GridBagLayout());
         filterPanel.setOpaque(false);
-        vehicleAvailabilityRegistrationField = createTextField();
-        vehicleAvailabilityManufacturerField = createTextField();
-        vehicleAvailabilityModelField = createTextField();
+        GridBagConstraints filterGbc = new GridBagConstraints();
+        filterGbc.insets = new Insets(2, 4, 2, 4);
+        filterGbc.fill = GridBagConstraints.HORIZONTAL;
+
+        vehicleAvailabilityRegistrationField = createFilterTextField();
+        vehicleAvailabilityManufacturerField = createFilterTextField();
+        vehicleAvailabilityModelField = createFilterTextField();
         vehicleAvailabilityCategoryComboBox = new JComboBox<>();
+        vehicleAvailabilityCategoryComboBox.setPreferredSize(new Dimension(115, 24));
         vehicleAvailabilityCategoryComboBox.addItem("ANY");
         for (VehicleCategory category : VehicleCategory.values()) {
             vehicleAvailabilityCategoryComboBox.addItem(category.name());
         }
-        vehicleAvailabilityStartDateField = createTextField();
-        vehicleAvailabilityEndDateField = createTextField();
+        vehicleAvailabilityStartDateField = createFilterTextField();
+        vehicleAvailabilityEndDateField = createFilterTextField();
         JButton refreshButton = GuiTheme.createPrimaryButton("Refresh");
         refreshButton.addActionListener(e -> refreshVehicleAvailabilityTable());
 
-        filterPanel.add(new JLabel("Registration:"));
-        filterPanel.add(vehicleAvailabilityRegistrationField);
-        filterPanel.add(new JLabel("Manufacturer:"));
-        filterPanel.add(vehicleAvailabilityManufacturerField);
-        filterPanel.add(new JLabel("Model:"));
-        filterPanel.add(vehicleAvailabilityModelField);
-        filterPanel.add(new JLabel("Category:"));
-        filterPanel.add(vehicleAvailabilityCategoryComboBox);
-        filterPanel.add(new JLabel("Available from:"));
-        filterPanel.add(vehicleAvailabilityStartDateField);
-        filterPanel.add(new JLabel("Available to:"));
-        filterPanel.add(vehicleAvailabilityEndDateField);
-        filterPanel.add(refreshButton);
+        addFilterComponent(filterPanel, filterGbc, 0, 0, "Registration:", vehicleAvailabilityRegistrationField);
+        addFilterComponent(filterPanel, filterGbc, 2, 0, "Manufacturer:", vehicleAvailabilityManufacturerField);
+        addFilterComponent(filterPanel, filterGbc, 4, 0, "Model:", vehicleAvailabilityModelField);
+        addFilterComponent(filterPanel, filterGbc, 0, 1, "Category:", vehicleAvailabilityCategoryComboBox);
+        addFilterComponent(filterPanel, filterGbc, 2, 1, "Available from:", vehicleAvailabilityStartDateField);
+        addFilterComponent(filterPanel, filterGbc, 4, 1, "Available to:", vehicleAvailabilityEndDateField);
+        filterGbc.gridx = 6;
+        filterGbc.gridy = 1;
+        filterGbc.weightx = 0;
+        filterPanel.add(refreshButton, filterGbc);
         topPanel.add(filterPanel, BorderLayout.EAST);
 
         panel.add(topPanel, BorderLayout.NORTH);
@@ -246,7 +248,7 @@ public class AgentMainFrame extends JFrame {
         panel.setOpaque(false);
         panel.add(GuiTheme.createSectionLabel("Reservations on selected day"), BorderLayout.NORTH);
 
-        dailyReservationsTableModel = new DefaultTableModel(new String[]{"ID", "Client", "Model", "Period", "Status", "Price"}, 0) {
+        dailyReservationsTableModel = new DefaultTableModel(new String[]{"ID", "Client", "Model", "Period", "Status", "Base price", "Extra services", "Total price"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -303,7 +305,7 @@ public class AgentMainFrame extends JFrame {
         titlePanel.add(buttonPanel, BorderLayout.EAST);
         panel.add(titlePanel, BorderLayout.NORTH);
 
-        String[] columns = {"ID", "Client", "Model", "Start", "End", "Status", "Price"};
+        String[] columns = {"ID", "Client", "Model", "Start", "End", "Status", "Base price", "Extra services", "Total price"};
         reservationsTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -490,6 +492,8 @@ public class AgentMainFrame extends JFrame {
                     reservation.getStartDate(),
                     reservation.getEndDate(),
                     reservation.getReservationStatus(),
+                    reservation.getRentalBasePrice(),
+                    reservation.getTotalExtraServicesPrice(),
                     reservation.getPrice()
             });
         }
@@ -535,6 +539,8 @@ public class AgentMainFrame extends JFrame {
                     vehicleModel.getManufacturer() + " " + vehicleModel.getModel(),
                     reservation.getStartDate() + " - " + reservation.getEndDate(),
                     reservation.getReservationStatus(),
+                    reservation.getRentalBasePrice(),
+                    reservation.getTotalExtraServicesPrice(),
                     reservation.getPrice()
             });
         }
@@ -1231,6 +1237,24 @@ public class AgentMainFrame extends JFrame {
                 BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
         return textField;
+    }
+
+    private JTextField createFilterTextField() {
+        JTextField textField = createTextField();
+        textField.setColumns(9);
+        textField.setPreferredSize(new Dimension(105, 24));
+        return textField;
+    }
+
+    private void addFilterComponent(JPanel panel, GridBagConstraints gbc, int x, int y, String label, JComponent component) {
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.weightx = 0;
+        panel.add(new JLabel(label), gbc);
+
+        gbc.gridx = x + 1;
+        gbc.weightx = 1;
+        panel.add(component, gbc);
     }
 
     private JPasswordField createPasswordField() {
