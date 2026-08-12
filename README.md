@@ -8,7 +8,7 @@ A Java application for managing core rent-a-car workflows, structured around dom
 - Separation between source code, specifications and tests
 - Scripted test execution
 - File-based project data
-- IntelliJ-based Java project setup
+- Clear domain-oriented organization
 
 ## Project structure
 
